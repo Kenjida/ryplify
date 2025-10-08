@@ -125,3 +125,5 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ fetchWithAuth }
     </div>
   );
 };
+
+export default AnalyticsDashboard;
