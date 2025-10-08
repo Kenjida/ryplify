@@ -9,12 +9,13 @@ interface ProjectListProps {
   showInactive: boolean;
   onToggleTimer: (id: string, isRunning: boolean) => void;
   onToggleActive: (id: string) => void;
+  onToggleFree?: (id: string) => void;
   isReadOnly?: boolean;
   liveNotes?: {[key: string]: string};
   handleNoteChange?: (id: string, note: string) => void;
 }
 
-const ProjectList: React.FC<ProjectListProps> = ({ projects, hourlyRate, showInactive, onToggleTimer, onToggleActive, isReadOnly, liveNotes, handleNoteChange }) => {
+const ProjectList: React.FC<ProjectListProps> = ({ projects, hourlyRate, showInactive, onToggleTimer, onToggleActive, onToggleFree, isReadOnly, liveNotes, handleNoteChange }) => {
   const filteredProjects = showInactive ? projects : projects.filter(p => p.isActive);
 
   if (filteredProjects.length === 0) {
@@ -34,6 +35,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ projects, hourlyRate, showIna
           hourlyRate={hourlyRate}
           onToggleTimer={onToggleTimer}
           onToggleActive={onToggleActive}
+          onToggleFree={onToggleFree}
           isReadOnly={isReadOnly}
           liveNote={liveNotes?.[project.id]}
           handleNoteChange={handleNoteChange}

@@ -9,12 +9,13 @@ export const useProjectTracker = () => {
   // Use localStorage for liveNotes to ensure cross-tab sync
   const [liveNotes, setLiveNotes] = useLocalStorage<{[key: string]: string}>('live_notes', {});
 
-  const addProject = useCallback((name: string) => {
+  const addProject = useCallback((name: string, isFree: boolean) => {
     const newProject: Project = {
       id: new Date().toISOString(),
       name,
       totalSeconds: 0,
       isActive: true,
+      isFree: isFree,
       startTime: null,
       timeEntries: [],
     };
@@ -69,6 +70,14 @@ export const useProjectTracker = () => {
     );
   }, [setProjects]);
 
+  const onToggleFree = useCallback((id: string) => {
+    setProjects(prevProjects => 
+      prevProjects.map(p => 
+        p.id === id ? { ...p, isFree: !p.isFree } : p
+      )
+    );
+  }, [setProjects]);
+
   return {
     projects,
     hourlyRate,
@@ -79,6 +88,7 @@ export const useProjectTracker = () => {
     addProject,
     onToggleTimer,
     onToggleActive,
+    onToggleFree,
     handleNoteChange
   };
 };

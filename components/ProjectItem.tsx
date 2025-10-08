@@ -9,6 +9,7 @@ interface ProjectItemProps {
   hourlyRate: number;
   onToggleTimer: (id: string, isRunning: boolean) => void;
   onToggleActive: (id: string) => void;
+  onToggleFree?: (id: string) => void;
   isReadOnly?: boolean;
   liveNote?: string;
   handleNoteChange?: (id: string, note: string) => void;
@@ -23,7 +24,7 @@ const formatTime = (totalSeconds: number): string => {
     .join(":");
 };
 
-const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggleTimer, onToggleActive, isReadOnly, liveNote, handleNoteChange }) => {
+const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggleTimer, onToggleActive, onToggleFree, isReadOnly, liveNote, handleNoteChange }) => {
   const [displaySeconds, setDisplaySeconds] = useState(project.totalSeconds);
 
   useEffect(() => {
@@ -93,12 +94,16 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
     <div className={`bg-zinc-800 p-4 rounded-lg shadow-md transition-all duration-300 ${!project.isActive ? 'ring-2 ring-green-500' : isRunning ? 'ring-2 ring-red-500' : ''}`}>
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-xl font-bold text-gray-100">
+          <h3 className="text-xl font-bold text-gray-100 flex items-center">
             {project.name}
             {!project.isActive && <span className="text-green-500 ml-2 text-sm font-normal">(Dokončeno)</span>}
+            {project.isFree && !isReadOnly && <span className="text-xs font-medium ml-2 px-2 py-0.5 rounded-full bg-blue-500 text-white">Zdarma</span>}
           </h3>
           <p className="text-3xl font-mono my-2 text-white">{formatTime(displaySeconds)}</p>
-          <p className="text-lg text-red-400 font-semibold">{cost.toFixed(2)} Kč</p>
+          <p className="text-lg text-red-400 font-semibold">
+            {project.isFree && !isReadOnly && <span className="text-sm text-gray-400">Potenciál: </span>}
+            {cost.toFixed(2)} Kč
+          </p>
         </div>
         {!isReadOnly && (
           <div className="flex flex-col items-end gap-2">
@@ -117,14 +122,26 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
             )}
             <div className="flex items-center mt-2">
               <span className="text-sm text-gray-400 mr-2">{project.isActive ? 'Aktivní' : 'Neaktivní'}</span>
-              <label htmlFor={`toggle-${project.id}`} className="flex items-center cursor-pointer">
+              <label htmlFor={`toggle-active-${project.id}`} className="flex items-center cursor-pointer">
                 <div className="relative">
-                  <input type="checkbox" id={`toggle-${project.id}`} className="sr-only" checked={project.isActive} onChange={() => onToggleActive(project.id)} />
+                  <input type="checkbox" id={`toggle-active-${project.id}`} className="sr-only" checked={project.isActive} onChange={() => onToggleActive(project.id)} />
                   <div className="block bg-zinc-600 w-14 h-8 rounded-full"></div>
                   <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${project.isActive ? 'transform translate-x-6 bg-red-500' : ''}`}></div>
                 </div>
               </label>
             </div>
+            {onToggleFree && (
+                <div className="flex items-center mt-2">
+                    <span className="text-sm text-gray-400 mr-2">{project.isFree ? 'Zdarma' : 'Placený'}</span>
+                    <label htmlFor={`toggle-free-${project.id}`} className="flex items-center cursor-pointer">
+                        <div className="relative">
+                            <input type="checkbox" id={`toggle-free-${project.id}`} className="sr-only" checked={project.isFree} onChange={() => onToggleFree(project.id)} />
+                            <div className="block bg-zinc-600 w-14 h-8 rounded-full"></div>
+                            <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${project.isFree ? 'transform translate-x-6 bg-blue-500' : ''}`}></div>
+                        </div>
+                    </label>
+                </div>
+            )}
           </div>
         )}
       </div>

@@ -11,6 +11,7 @@ export interface Project {
   name: string;
   totalSeconds: number;
   isActive: boolean;
+  isFree: boolean;
   startTime: number | null;
   timeEntries: TimeEntry[];
 }

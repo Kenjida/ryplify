@@ -9,6 +9,7 @@ const ProjectPage: React.FC = () => {
     hourlyRate,
     onToggleTimer,
     onToggleActive,
+    onToggleFree,
     liveNotes,
     handleNoteChange
   } = useProjectTracker();
@@ -35,6 +36,7 @@ const ProjectPage: React.FC = () => {
         showInactive={true}
         onToggleTimer={onToggleTimer}
         onToggleActive={onToggleActive}
+        onToggleFree={onToggleFree}
         isReadOnly={true}
         liveNotes={liveNotes}
         handleNoteChange={handleNoteChange}
