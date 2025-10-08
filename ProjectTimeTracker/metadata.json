@@ -1,0 +1,5 @@
+{
+  "name": "Project Time Tracker",
+  "description": "An application in which I can enter the projects I am working on. For each project, it will be possible to start a timer. After starting the timer, it will count the time until I turn it off. I will enter more projects and add them gradually. I will check the time for each one. When I am working on a project, I will turn on the timer. The application will allow me to set a default hourly rate. The application will calculate how much money each project actually cost. The application will also graphically display data about the top 5 most expensive projects. There will be an overview for the month and an overview for the year. Projects cannot be deleted, but they can be unchecked to hide them. If I want to return to it, I will have the option to reactivate it without affecting the already calculated time.",
+  "requestFramePermissions": []
+}
