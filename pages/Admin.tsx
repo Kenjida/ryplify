@@ -286,7 +286,7 @@ const Admin: React.FC = () => {
       
       <div className="mb-8 p-4 border rounded-lg border-slate-700">
         <h2 className="text-xl font-bold mb-4">Přehled návštěvnosti</h2>
-        <AnalyticsDashboard />
+        <AnalyticsDashboard fetchWithAuth={fetchWithAuth} />
       </div>
 
       <div className="mb-8 p-4 border rounded-lg border-slate-700">
@@ -308,12 +308,14 @@ const Admin: React.FC = () => {
               <tr key={article.id}>
                 <td className="border-b border-slate-700 p-2">{article.title}</td>
                 <td className="border-b border-slate-700 p-2">
-                  <button onClick={() => handleEdit(article)} className="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded mr-2">
-                    Upravit
-                  </button>
-                  <button onClick={() => handleDelete(article.id)} className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">
-                    Smazat
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <button onClick={() => handleEdit(article)} className="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded">
+                      Upravit
+                    </button>
+                    <button onClick={() => handleDelete(article.id)} className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">
+                      Smazat
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

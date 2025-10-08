@@ -14,7 +14,7 @@ const HeroSection: React.FC = () => {
         <p className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-8">
           Od responzivních webů po chytré mobilní aplikace a automatizační nástroje s umělou inteligencí. Posouváme hranice digitálních možností.
         </p>
-        <div className="space-x-4">
+        <div className="flex flex-wrap justify-center gap-4">
             <a href="#services" className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition-transform duration-300 hover:scale-105 inline-block">
                 Prozkoumat Služby
             </a>

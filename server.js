@@ -168,11 +168,12 @@ app.delete('/api/articles/:id', verifyToken, (req, res) => {
 });
 
 // --- OTHER APIs (Contact, Analytics) ---
-app.get('/api/contact', (req, res) => {
+app.get('/api/contact', verifyToken, (req, res) => {
   const db = readDB();
   res.json(db.formSubmissions || []);
 });
 
+// POST a new form submission
 app.post('/api/contact', (req, res) => {
   const db = readDB();
   if (!db.formSubmissions) db.formSubmissions = [];
@@ -191,7 +192,7 @@ app.post('/api/track', (req, res) => {
   res.status(201).json(newView);
 });
 
-app.get('/api/analytics', (req, res) => {
+app.get('/api/analytics', verifyToken, (req, res) => {
   const db = readDB();
   const pageViews = db.pageViews || [];
   const totalViews = pageViews.length;

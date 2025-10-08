@@ -27,16 +27,24 @@ interface AnalyticsData {
   topPages: [string, number][];
 }
 
-const AnalyticsDashboard: React.FC = () => {
+interface AnalyticsDashboardProps {
+  fetchWithAuth: (url: string, options?: RequestInit) => Promise<Response>;
+}
+
+const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ fetchWithAuth }) => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/analytics')
+    fetchWithAuth('/api/analytics')
       .then(res => res.json())
       .then(setData)
+      .catch(error => {
+        console.error('Failed to fetch analytics data:', error);
+        setData(null); // Explicitly set data to null on error
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [fetchWithAuth]);
 
   if (loading) {
     return <p>Načítání analytických dat...</p>;
@@ -117,5 +125,3 @@ const AnalyticsDashboard: React.FC = () => {
     </div>
   );
 };
-
-export default AnalyticsDashboard;

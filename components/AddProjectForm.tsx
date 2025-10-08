@@ -22,7 +22,7 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ onAddProject }) => {
     <div className="bg-zinc-800 p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4 text-red-500">Přidat nový projekt</h2>
       <form onSubmit={handleSubmit}>
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
             type="text"
             value={name}
