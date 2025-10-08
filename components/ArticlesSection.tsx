@@ -13,7 +13,7 @@ const ArticlesSection: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/articles')
+    fetch('/api/articles')
       .then(response => response.json())
       .then(data => {
         const sortedData = data.sort((a: Article, b: Article) => b.id - a.id);
@@ -29,7 +29,7 @@ const ArticlesSection: React.FC = () => {
           {articles.slice(0, 6).map(article => (
             <Link to={`/clanek/${article.id}`} key={article.id} className="block border border-slate-700 rounded-lg overflow-hidden hover:bg-slate-800 transition-colors">
               {article.imageUrl && (
-                <img src={`http://localhost:3001${article.imageUrl}`} alt={article.title} className="w-full h-48 object-cover" />
+                <img src={`${article.imageUrl}`} alt={article.title} className="w-full h-48 object-cover" />
               )}
               <div className="p-4">
                 <h3 className="text-xl font-bold mb-2">{article.title}</h3>

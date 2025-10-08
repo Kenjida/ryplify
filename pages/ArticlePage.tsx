@@ -16,7 +16,7 @@ const ArticlePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/api/articles/${id}`)
+    fetch(`/api/articles/${id}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Článek nebyl nalezen');

@@ -61,13 +61,13 @@ const Admin: React.FC = () => {
   };
 
   const fetchArticles = () => {
-    fetch('http://localhost:3001/api/articles')
+    fetch('/api/articles')
       .then(response => response.json())
       .then(data => setArticles(data));
   };
 
   const fetchSubmissions = () => {
-    fetchWithAuth('http://localhost:3001/api/contact')
+    fetchWithAuth('/api/contact')
       .then(response => response.json())
       .then(data => setFormSubmissions(data));
   };
@@ -79,7 +79,7 @@ const Admin: React.FC = () => {
 
   const handleDelete = (id: number) => {
     if (window.confirm('Opravdu chcete smazat tento článek?')) {
-      fetchWithAuth(`http://localhost:3001/api/articles/${id}`, { method: 'DELETE' })
+      fetchWithAuth(`/api/articles/${id}`, { method: 'DELETE' })
         .then(() => fetchArticles());
     }
   };
@@ -106,7 +106,7 @@ const Admin: React.FC = () => {
       formData.append('image', file);
       setUploading(true);
 
-      fetchWithAuth('http://localhost:3001/api/upload', {
+      fetchWithAuth('/api/upload', {
         method: 'POST',
         body: formData,
       })
@@ -129,8 +129,8 @@ const Admin: React.FC = () => {
     if (!currentArticle) return;
 
     const url = currentArticle.id === 0 
-      ? 'http://localhost:3001/api/articles' 
-      : `http://localhost:3001/api/articles/${currentArticle.id}`;
+      ? '/api/articles' 
+      : `/api/articles/${currentArticle.id}`;
       
     const method = currentArticle.id === 0 ? 'POST' : 'PUT';
 
@@ -165,7 +165,7 @@ const Admin: React.FC = () => {
     }
 
     try {
-        const response = await fetchWithAuth('http://localhost:3001/api/change-password', {
+        const response = await fetchWithAuth('/api/change-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ oldPassword, newPassword }),
@@ -212,7 +212,7 @@ const Admin: React.FC = () => {
             {uploading && <p>Nahrávám obrázek...</p>}
             {currentArticle.imageUrl && !uploading && (
               <div className="mt-4">
-                <img src={`http://localhost:3001${currentArticle.imageUrl}`} alt="Náhled" className="max-w-xs rounded" />
+                <img src={`${currentArticle.imageUrl}`} alt="Náhled" className="max-w-xs rounded" />
               </div>
             )}
           </div>
