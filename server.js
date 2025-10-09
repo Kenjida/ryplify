@@ -743,59 +743,61 @@ app.get('/api/analytics/ips', verifyToken, (req, res) => {
 
     }, {});
 
-                const sortedIps = Object.entries(viewsByIp).sort(([, a], [, b]) => b - a);
+                    const sortedIps = Object.entries(viewsByIp).sort(([, a], [, b]) => b - a);
 
-                res.json(sortedIps);
-
-            });
-
-            
-
-            // --- PRODUCTION STATIC SERVING ---
-
-            // This must be AFTER all API routes.
-
-            // Using the most robust pattern to avoid path-to-regexp errors.
-
-            const distPath = path.join(__dirname, 'dist');
-
-            if (fs.existsSync(distPath)) {
-
-                // 1. Serve static files (CSS, JS, images)
-
-                app.use(express.static(distPath)); 
-
-            
-
-                // 2. Fallback for any other GET request sends the React app
-
-                app.use((req, res, next) => {
-
-                    if (req.method === 'GET' && !res.headersSent) {
-
-                         res.sendFile(path.join(distPath, 'index.html'));
-
-                    } else {
-
-                         next(); 
-
-                    }
+                    res.json(sortedIps);
 
                 });
 
-            }
+                
 
-            
+                // --- PRODUCTION STATIC SERVING ---
 
-            
+                // This must be AFTER all API routes.
 
-            // --- SERVER START ---
+                // Using the most robust pattern to avoid path-to-regexp errors.
 
-            app.listen(port, () => {
+                const distPath = path.join(__dirname, 'dist');
 
-              initializeUser();
+                if (fs.existsSync(distPath)) {
 
-              console.log(`Backend server listening at http://localhost:${port}`);
+                    // 1. Serve static files (CSS, JS, images) from the 'dist' directory
 
-            });
+                    app.use(express.static(distPath)); 
+
+                
+
+                    // 2. A final fallback middleware for any other GET request sends the React app.
+
+                    // This avoids the app.get() router parser entirely for the catch-all.
+
+                    app.use((req, res, next) => {
+
+                        if (req.method === 'GET' && !res.headersSent) {
+
+                             res.sendFile(path.join(distPath, 'index.html'));
+
+                        } else {
+
+                             next(); 
+
+                        }
+
+                    });
+
+                }
+
+                
+
+                
+
+                // --- SERVER START ---
+
+                app.listen(port, () => {
+
+                  initializeUser();
+
+                  console.log(`Backend server listening at http://localhost:${port}`);
+
+                });
 
