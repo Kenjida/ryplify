@@ -2569,7 +2569,103 @@ app.get('/api/contact', verifyToken, (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 app.post('/api/contact', (req, res) => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  console.log('--- Received /api/contact request ---');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  console.log('Request Body:', req.body);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2593,7 +2689,31 @@ app.post('/api/contact', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   if (!db.formSubmissions) db.formSubmissions = [];
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2617,7 +2737,31 @@ app.post('/api/contact', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   db.formSubmissions.push(newSubmission);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2641,7 +2785,55 @@ app.post('/api/contact', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   if (writeDB(db)) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    console.log('Submission saved successfully.');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2665,7 +2857,55 @@ app.post('/api/contact', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   } else {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    console.log('ERROR: Failed to write submission to db.json.');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2689,7 +2929,31 @@ app.post('/api/contact', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -20,6 +20,13 @@
       "name": "Kenjida's Org",
       "email": "lukas.rypl@gmail.com",
       "message": "hej"
+    },
+    {
+      "id": 1760002441585,
+      "submittedAt": "2025-10-09T09:34:01.585Z",
+      "name": "rwerew werwe",
+      "email": "lukas.rypl@gmail.com",
+      "message": "sdsad"
     }
   ],
   "pageViews": [
@@ -909,6 +916,12 @@
       "id": 1759999767950,
       "path": "/",
       "timestamp": "2025-10-09T08:49:27.950Z",
+      "ip": "::1"
+    },
+    {
+      "id": 1760002433697,
+      "path": "/",
+      "timestamp": "2025-10-09T09:33:53.697Z",
       "ip": "::1"
     }
   ],
