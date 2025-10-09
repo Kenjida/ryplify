@@ -4,19 +4,34 @@
 
 /* Additional styles can be added here */
 
-/* Custom styles for SunEditor image alignment to work with Tailwind Prose */
+/* --- Definitive SunEditor Image Alignment Fix for Tailwind Prose --- */
+
+/* 1. Reset any conflicting styles from .prose */
+.prose figure[class*="se-figure-"] {
+  margin: 1.6em 0 !important;
+  float: none !important;
+  display: block !important;
+}
+
+/* 2. Apply specific alignment styles */
 .prose figure.se-figure-center {
   margin-left: auto !important;
   margin-right: auto !important;
 }
+
 .prose figure.se-figure-right {
-  margin-left: auto !important;
-  margin-right: 0 !important;
+  float: right !important;
+  margin-left: 1.5em !important;
 }
+
 .prose figure.se-figure-left {
-  margin-left: 0 !important;
-  margin-right: auto !important;
+  float: left !important;
+  margin-right: 1.5em !important;
 }
-.prose figure {
-    display: block !important;
+
+/* 3. Clear floats to prevent layout breaking */
+.prose figure[class*="se-figure-"]::after {
+  content: "";
+  display: table;
+  clear: both;
 }
