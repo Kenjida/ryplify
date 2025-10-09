@@ -3,3 +3,20 @@
 @tailwind utilities;
 
 /* Additional styles can be added here */
+
+/* Custom styles for SunEditor image alignment to work with Tailwind Prose */
+.prose figure.se-figure-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+.prose figure.se-figure-right {
+  margin-left: auto;
+  margin-right: 0;
+}
+.prose figure.se-figure-left {
+  margin-left: 0;
+  margin-right: auto;
+}
+.prose figure {
+    display: block;
+}
