@@ -64,19 +64,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange }) =>
           '/', // Line break
           ['fontColor', 'hiliteColor'],
           ['outdent', 'indent'],
-      <button type="button" onClick={() => editor.chain().focus().toggleStrike().run()} className={editor.isActive('strike') ? 'is-active' : ''}>Strike</button>
-      <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}>H2</button>
-      
-      {/* Image */}
-      <button type="button" onClick={triggerFileInput}>Přidat obrázek</button>
-      {editor.isActive('image') && (
-        <button type="button" onClick={setImageSize} className="text-red-400 border border-red-400 px-2 py-1 rounded">
-          Změnit velikost
-        </button>
-      )}
-
-      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
-    </div>
+          ['horizontalRule', 'list', 'lineHeight'],
           ['table', 'link', 'image'], // 'image' button will now use our handler
           ['fullScreen', 'showBlocks', 'codeView'],
           ['preview', 'print'],
