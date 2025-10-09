@@ -17,7 +17,21 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-const port = process.env.PORT || 3001;
+
+
+// Use the port assigned by the environment (e.g., CloudPanel)
+
+const port = process.env.PORT;
+
+if (!port) {
+
+    console.error('FATAL ERROR: PORT environment variable is not set.');
+
+    process.exit(1); // Exit the application if no port is provided
+
+}
+
+
 
 const dbPath = path.join(__dirname, 'public', 'db.json');
 
