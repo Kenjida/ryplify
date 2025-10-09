@@ -4,22 +4,9 @@
 
 /* Additional styles can be added here */
 
-/* --- Definitive SunEditor Image Alignment Fix using Flexbox --- */
-
-/* 1. Turn the figure into a flex container */
-.prose figure[data-align] {
-  display: flex !important;
-}
-
-/* 2. Use justify-content to force alignment of the image inside */
-.prose figure[data-align="center"] {
-  justify-content: center !important;
-}
-
-.prose figure[data-align="right"] {
-  justify-content: flex-end !important;
-}
-
-.prose figure[data-align="left"] {
-  justify-content: flex-start !important;
+/* --- Force Center All Images in Articles --- */
+.prose figure img {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
