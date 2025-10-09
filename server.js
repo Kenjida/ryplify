@@ -45,43 +45,183 @@ app.use(bodyParser.json());
 
 // --- DB HELPER FUNCTIONS ---
 
+
+
+
+
 const readDB = () => {
 
-  try {
 
-    const dbRaw = fs.readFileSync(dbPath, 'utf-8');
 
-    return JSON.parse(dbRaw);
 
-  } catch (error) {
 
-    console.error("Error reading database file:", error);
+  // If the database file doesn't exist, return a default structure.
 
-    // Return a default structure if the file is empty or corrupt
+
+
+
+
+  // The app will create the file on its first write.
+
+
+
+
+
+  if (!fs.existsSync(dbPath)) {
+
+
+
+
+
+    console.log('Database file not found. A new one will be created.');
+
+
+
+
 
     return { articles: [], formSubmissions: [], pageViews: [], user: null };
 
+
+
+
+
   }
+
+
+
+
+
+
+
+
+
+
+
+  try {
+
+
+
+
+
+    const dbRaw = fs.readFileSync(dbPath, 'utf-8');
+
+
+
+
+
+    // Handle case where the file is empty
+
+
+
+
+
+    if (dbRaw.trim() === '') {
+
+
+
+
+
+      return { articles: [], formSubmissions: [], pageViews: [], user: null };
+
+
+
+
+
+    }
+
+
+
+
+
+    return JSON.parse(dbRaw);
+
+
+
+
+
+  } catch (error) {
+
+
+
+
+
+    console.error("Error reading or parsing database file:", error);
+
+
+
+
+
+    // If the file is corrupt, return a default structure to allow the app to start
+
+
+
+
+
+    // and potentially overwrite the corrupt file.
+
+
+
+
+
+    return { articles: [], formSubmissions: [], pageViews: [], user: null };
+
+
+
+
+
+  }
+
+
+
+
 
 };
 
 
 
+
+
+
+
+
+
+
+
 const writeDB = (data) => {
+
+
+
+
 
   try {
 
+
+
+
+
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+
+
+
+
 
   } catch (error) {
 
+
+
+
+
     console.error("Error writing to database file:", error);
 
-    // This error is critical, as it means data isn't being saved.
 
-    // In a real app, you might want to alert an admin here.
+
+
 
   }
+
+
+
+
 
 };
 
