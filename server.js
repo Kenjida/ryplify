@@ -35,15 +35,73 @@ const JWT_SECRET = 'your-super-secret-key-that-should-be-in-env-vars'; // In a r
 
 // --- MIDDLEWARE ---
 
-app.use(cors());
+
+
+const whitelist = ['https://vibecoding.ryplify.eu', 'https://prolidi.ryplify.eu'];
+
+
+
+const corsOptions = {
+
+
+
+  origin: function (origin, callback) {
+
+
+
+    // Allow requests with no origin (like mobile apps or curl requests)
+
+
+
+    if (!origin) return callback(null, true);
+
+
+
+    if (whitelist.indexOf(origin) !== -1) {
+
+
+
+      callback(null, true);
+
+
+
+    } else {
+
+
+
+      callback(new Error('Not allowed by CORS'));
+
+
+
+    }
+
+
+
+  }
+
+
+
+};
+
+
+
+app.use(cors(corsOptions));
+
+
 
 app.use(bodyParser.json());
 
 
 
+
+
+
+
 // Serve static assets
 
-    app.use('/uploads', express.static(uploadsDir));
+
+
+app.use('/uploads', express.static(uploadsDir));
 
 
 
