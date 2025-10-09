@@ -36,7 +36,8 @@ const ArticlePage: React.FC = () => {
           <article>
             <h1 className="text-4xl font-bold mb-4">{article.title}</h1>
             <p className="text-lg text-slate-400 mb-8">{article.perex}</p>
-            <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: article.content }} />
+            {/* Use the editor's own class for consistent styling */}
+            <div className="sun-editor-editable" dangerouslySetInnerHTML={{ __html: article.content }} />
           </article>
         ) : (
           !error && <p>Načítání článku...</p>
