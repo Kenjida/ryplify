@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { fetchWithAuth } from '../utils/api'; // Import the helper
 
 type IpData = [string, number];
 
@@ -10,9 +11,18 @@ const IpAnalyticsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/analytics/ips')
-      .then(res => res.json())
+    fetchWithAuth('/api/analytics/ips') // Use the helper
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch');
+        }
+        return res.json();
+      })
       .then(setIpData)
+      .catch(error => {
+        console.error("Failed to fetch IP analytics:", error);
+        setIpData([]); // Clear data on error
+      })
       .finally(() => setLoading(false));
   }, []);
 
