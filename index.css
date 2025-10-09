@@ -4,8 +4,22 @@
 
 /* Additional styles can be added here */
 
-/* --- Definitive "Always Center" Image Fix --- */
+/* --- Definitive "Nuke and Rebuild" Image Alignment Fix --- */
+
+/* 
+  This is the rule that was causing the issue: 
+  .prose blockquote, .prose dl, .prose dd, .prose h1, .prose h2, .prose h3, .prose h4, .prose figure, ... { margin: 0; }
+  We need to create a more specific rule to override it.
+*/
+
 .prose figure {
+  /* 1. Nuke all inherited prose styles from the figure */
+  all: unset !important;
+
+  /* 2. Rebuild it as a flex container to center the image */
   display: flex !important;
   justify-content: center !important;
+  width: 100% !important; /* Ensure it takes full width to center within */
+  margin-top: 1.6em !important; /* Restore vertical spacing */
+  margin-bottom: 1.6em !important; /* Restore vertical spacing */
 }
