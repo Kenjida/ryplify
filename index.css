@@ -4,9 +4,8 @@
 
 /* Additional styles can be added here */
 
-/* --- Force Center All Images in Articles --- */
-.prose figure img {
-  display: block !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+/* --- Definitive "Always Center" Image Fix --- */
+.prose figure {
+  display: flex !important;
+  justify-content: center !important;
 }
