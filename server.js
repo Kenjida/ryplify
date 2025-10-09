@@ -19,17 +19,9 @@ app.set('trust proxy', 1);
 
 
 
-// Use the port assigned by the environment (e.g., CloudPanel)
+// Use the port assigned by the environment, or fall back to 3002
 
-const port = process.env.PORT;
-
-if (!port) {
-
-    console.error('FATAL ERROR: PORT environment variable is not set.');
-
-    process.exit(1); // Exit the application if no port is provided
-
-}
+const port = process.env.PORT || 3002;
 
 
 
