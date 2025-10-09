@@ -603,51 +603,59 @@ app.get('/api/analytics/ips', verifyToken, (req, res) => {
 
     }, {});
 
-            const sortedIps = Object.entries(viewsByIp).sort(([, a], [, b]) => b - a);
+                const sortedIps = Object.entries(viewsByIp).sort(([, a], [, b]) => b - a);
 
-            res.json(sortedIps);
-
-        });
-
-        
-
-        // --- PRODUCTION STATIC SERVING ---
-
-        // This must be AFTER all API routes
-
-        const distPath = path.join(__dirname, 'dist');
-
-        if (fs.existsSync(distPath)) {
-
-            // Serve static files (e.g., CSS, JS, images) from the 'dist' directory
-
-            app.use(express.static(distPath)); 
-
-        
-
-            // This is the robust catch-all route for client-side routing.
-
-            // It serves index.html for any path that wasn't handled by a static file or an API route.
-
-            app.get('/:path([^\/]+)*', (req, res) => {
-
-                res.sendFile(path.join(distPath, 'index.html'));
+                res.json(sortedIps);
 
             });
 
-        }
+            
 
-        
+            // --- PRODUCTION STATIC SERVING ---
 
-        
+            // This must be AFTER all API routes.
 
-        // --- SERVER START ---
+            // Using the most robust pattern to avoid path-to-regexp errors.
 
-        app.listen(port, () => {
+            const distPath = path.join(__dirname, 'dist');
 
-          initializeUser();
+            if (fs.existsSync(distPath)) {
 
-          console.log(`Backend server listening at http://localhost:${port}`);
+                // 1. Serve static files (CSS, JS, images)
 
-        });
+                app.use(express.static(distPath)); 
+
+            
+
+                // 2. Fallback for any other GET request sends the React app
+
+                app.use((req, res, next) => {
+
+                    if (req.method === 'GET' && !res.headersSent) {
+
+                         res.sendFile(path.join(distPath, 'index.html'));
+
+                    } else {
+
+                         next(); 
+
+                    }
+
+                });
+
+            }
+
+            
+
+            
+
+            // --- SERVER START ---
+
+            app.listen(port, () => {
+
+              initializeUser();
+
+              console.log(`Backend server listening at http://localhost:${port}`);
+
+            });
 
