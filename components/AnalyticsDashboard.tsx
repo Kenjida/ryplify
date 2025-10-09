@@ -5,16 +5,20 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
   Legend
@@ -25,6 +29,7 @@ interface AnalyticsData {
   uniqueVisitors: number;
   viewsPerDay: { [day: string]: number };
   topPages: [string, number][];
+  viewsPerMonth: number[];
 }
 
 interface AnalyticsDashboardProps {
@@ -34,17 +39,33 @@ interface AnalyticsDashboardProps {
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ fetchWithAuth }) => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0); // State to trigger re-fetch
 
   useEffect(() => {
+    setLoading(true);
     fetchWithAuth('/api/analytics')
       .then(res => res.json())
       .then(setData)
       .catch(error => {
         console.error('Failed to fetch analytics data:', error);
-        setData(null); // Explicitly set data to null on error
+        setData(null);
       })
       .finally(() => setLoading(false));
-  }, [fetchWithAuth]);
+  }, [fetchWithAuth, refreshKey]);
+
+  const handleReset = () => {
+    if (window.confirm('Opravdu chcete smazat veškeré statistiky návštěvnosti? Tato akce je nevratná.')) {
+      fetchWithAuth('/api/analytics', { method: 'DELETE' })
+        .then(res => {
+          if (res.ok) {
+            alert('Statistiky byly úspěšně resetovány.');
+            setRefreshKey(prevKey => prevKey + 1); // Trigger a re-fetch
+          } else {
+            alert('Reset se nezdařil.');
+          }
+        });
+    }
+  };
 
   if (loading) {
     return <p>Načítání analytických dat...</p>;
@@ -54,7 +75,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ fetchWithAuth }
     return <p>Nepodařilo se načíst data.</p>;
   }
 
-  const chartData = {
+  const dailyChartData = {
     labels: Object.keys(data.viewsPerDay),
     datasets: [
       {
@@ -67,6 +88,19 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ fetchWithAuth }
     ],
   };
 
+  const monthlyChartData = {
+    labels: ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'],
+    datasets: [
+      {
+        label: 'Zobrazení za měsíc',
+        data: data.viewsPerMonth,
+        fill: false,
+        borderColor: 'rgba(220, 38, 38, 1)',
+        tension: 0.1,
+      },
+    ],
+  };
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -74,7 +108,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ fetchWithAuth }
       legend: { display: false },
       title: {
         display: true,
-        text: 'Zobrazení stránek za den',
         color: '#cbd5e1'
       },
     },
@@ -95,10 +128,20 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ fetchWithAuth }
           <h3 className="text-lg text-slate-400">Celkem zobrazení</h3>
           <p className="text-3xl font-bold">{data.totalViews}</p>
         </div>
+        <div className="bg-slate-800 p-4 rounded-lg text-center flex items-center justify-center">
+          <button onClick={handleReset} className="bg-red-800 hover:bg-red-900 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+            Resetovat statistiky
+          </button>
+        </div>
       </div>
       
-      <div className="mb-8 relative h-80">
-        <Bar options={chartOptions} data={chartData} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="relative h-80">
+          <Bar options={{...chartOptions, plugins: {...chartOptions.plugins, title: {...chartOptions.plugins.title, text: 'Zobrazení stránek za den'}}}} data={dailyChartData} />
+        </div>
+        <div className="relative h-80">
+          <Line options={{...chartOptions, plugins: {...chartOptions.plugins, title: {...chartOptions.plugins.title, text: 'Zobrazení stránek za měsíc'}}}} data={monthlyChartData} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

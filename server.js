@@ -3361,7 +3361,15 @@ app.get('/api/analytics', verifyToken, (req, res) => {
 
 
 
+
+
+
+
   const db = readDB();
+
+
+
+
 
 
 
@@ -3369,7 +3377,23 @@ app.get('/api/analytics', verifyToken, (req, res) => {
 
 
 
+
+
+
+
   const totalViews = pageViews.length;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3377,7 +3401,15 @@ app.get('/api/analytics', verifyToken, (req, res) => {
 
 
 
+
+
+
+
     const day = view.timestamp.split('T')[0];
+
+
+
+
 
 
 
@@ -3385,7 +3417,15 @@ app.get('/api/analytics', verifyToken, (req, res) => {
 
 
 
+
+
+
+
     return acc;
+
+
+
+
 
 
 
@@ -3393,7 +3433,23 @@ app.get('/api/analytics', verifyToken, (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   const topPages = Object.entries(pageViews.reduce((acc, view) => {
+
+
+
+
 
 
 
@@ -3401,7 +3457,15 @@ app.get('/api/analytics', verifyToken, (req, res) => {
 
 
 
+
+
+
+
     return acc;
+
+
+
+
 
 
 
@@ -3409,11 +3473,95 @@ app.get('/api/analytics', verifyToken, (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   const uniqueVisitors = new Set(pageViews.map(view => view.ip)).size;
 
 
 
-  res.json({ totalViews, viewsPerDay, topPages, uniqueVisitors });
+
+
+
+
+
+
+
+
+
+
+
+
+  // Calculate views per month for the yearly chart
+
+
+
+
+
+
+
+  const viewsPerMonth = Array(12).fill(0);
+
+
+
+
+
+
+
+  pageViews.forEach(view => {
+
+
+
+
+
+
+
+    const month = new Date(view.timestamp).getMonth(); // 0 = January, 11 = December
+
+
+
+
+
+
+
+    viewsPerMonth[month]++;
+
+
+
+
+
+
+
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  res.json({ totalViews, viewsPerDay, topPages, uniqueVisitors, viewsPerMonth });
+
+
+
+
 
 
 
@@ -3425,7 +3573,99 @@ app.get('/api/analytics', verifyToken, (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+app.delete('/api/analytics', verifyToken, (req, res) => {
+
+
+
+
+
+
+
+  const db = readDB();
+
+
+
+
+
+
+
+  db.pageViews = []; // Reset the page views
+
+
+
+
+
+
+
+  if (writeDB(db)) {
+
+
+
+
+
+
+
+    res.status(200).json({ message: 'Statistiky byly úspěšně resetovány.' });
+
+
+
+
+
+
+
+  } else {
+
+
+
+
+
+
+
+    res.status(500).json({ message: 'Nepodařilo se resetovat statistiky.' });
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 app.get('/api/analytics/ips', verifyToken, (req, res) => {
+
+
+
+
 
 
 
@@ -3433,7 +3673,15 @@ app.get('/api/analytics/ips', verifyToken, (req, res) => {
 
 
 
+
+
+
+
     const pageViews = db.pageViews || [];
+
+
+
+
 
 
 
