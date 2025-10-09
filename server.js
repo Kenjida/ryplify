@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 const port = 3001;
 const dbPath = path.join(__dirname, 'public', 'db.json');
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
@@ -27,12 +27,24 @@ app.use('/uploads', express.static(uploadsDir));
 
 // --- DB HELPER FUNCTIONS ---
 const readDB = () => {
-  const dbRaw = fs.readFileSync(dbPath);
-  return JSON.parse(dbRaw);
+  try {
+    const dbRaw = fs.readFileSync(dbPath, 'utf-8');
+    return JSON.parse(dbRaw);
+  } catch (error) {
+    console.error("Error reading database file:", error);
+    // Return a default structure if the file is empty or corrupt
+    return { articles: [], formSubmissions: [], pageViews: [], user: null };
+  }
 };
 
 const writeDB = (data) => {
-  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+  try {
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error("Error writing to database file:", error);
+    // This error is critical, as it means data isn't being saved.
+    // In a real app, you might want to alert an admin here.
+  }
 };
 
 // --- INITIALIZATION ---
@@ -112,6 +124,19 @@ app.post('/api/change-password', verifyToken, async (req, res) => {
 });
 
 
+// --- UTILITY FUNCTIONS ---
+const slugify = (text) => {
+  return text.toString().toLowerCase()
+    .normalize('NFD')           // split an accented letter in the base letter and the acent
+    .replace(/[\u0300-\u036f]/g, '') // remove all previously split accents
+    .replace(/\s+/g, '-')        // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')    // Remove all non-word chars
+    .replace(/\-\-+/g, '-')      // Replace multiple - with single -
+    .replace(/^-+/, '')          // Trim - from start of text
+    .replace(/-+$/, '');         // Trim - from end of text
+};
+
+
 // --- FILE UPLOAD ---
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
@@ -132,9 +157,18 @@ app.get('/api/articles', (req, res) => {
   res.json(db.articles);
 });
 
-app.get('/api/articles/:id', (req, res) => {
+app.get('/api/articles/:slug', (req, res) => {
   const db = readDB();
-  const article = db.articles.find(a => a.id === parseInt(req.params.id, 10));
+  // First, try to find by slug
+  let article = db.articles.find(a => a.slug === req.params.slug);
+  // If not found, try to find by ID (for backward compatibility)
+  if (!article) {
+    const articleId = parseInt(req.params.slug, 10);
+    if (!isNaN(articleId)) {
+      article = db.articles.find(a => a.id === articleId);
+    }
+  }
+  
   if (article) res.json(article);
   else res.status(404).send('Article not found');
 });
@@ -142,7 +176,8 @@ app.get('/api/articles/:id', (req, res) => {
 app.post('/api/articles', verifyToken, (req, res) => {
   const db = readDB();
   const { title, perex, content, imageUrl } = req.body;
-  const newArticle = { id: Date.now(), title, perex, content, imageUrl };
+  const slug = slugify(title);
+  const newArticle = { id: Date.now(), title, perex, content, imageUrl, slug };
   db.articles.push(newArticle);
   writeDB(db);
   res.status(201).json(newArticle);
@@ -150,9 +185,18 @@ app.post('/api/articles', verifyToken, (req, res) => {
 
 app.put('/api/articles/:id', verifyToken, (req, res) => {
   const db = readDB();
-  const articleIndex = db.articles.findIndex(a => a.id === parseInt(req.params.id, 10));
+  const articleId = parseInt(req.params.id, 10);
+  const articleIndex = db.articles.findIndex(a => a.id === articleId);
   if (articleIndex === -1) return res.status(404).send('Article not found');
-  const updatedArticle = { ...db.articles[articleIndex], ...req.body };
+  
+  const { title } = req.body;
+  const newSlug = title ? slugify(title) : db.articles[articleIndex].slug;
+
+  const updatedArticle = { 
+    ...db.articles[articleIndex], 
+    ...req.body,
+    slug: newSlug
+  };
   db.articles[articleIndex] = updatedArticle;
   writeDB(db);
   res.json(updatedArticle);
@@ -186,7 +230,8 @@ app.post('/api/contact', (req, res) => {
 app.post('/api/track', (req, res) => {
   const db = readDB();
   if (!db.pageViews) db.pageViews = [];
-  const newView = { id: Date.now(), path: req.body.path, timestamp: new Date().toISOString(), ip: req.ip };
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
+  const newView = { id: Date.now(), path: req.body.path, timestamp: new Date().toISOString(), ip: ip };
   db.pageViews.push(newView);
   writeDB(db);
   res.status(201).json(newView);

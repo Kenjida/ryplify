@@ -11,12 +11,12 @@ interface Article {
 }
 
 const ArticlePage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [article, setArticle] = useState<Article | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/articles/${id}`)
+    fetch(`/api/articles/${slug}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Článek nebyl nalezen');
@@ -25,7 +25,7 @@ const ArticlePage: React.FC = () => {
       })
       .then(data => setArticle(data))
       .catch(err => setError(err.message));
-  }, [id]);
+  }, [slug]);
 
   return (
     <div className="bg-[#0a0f1f] text-slate-300 font-sans leading-relaxed min-h-screen flex flex-col">

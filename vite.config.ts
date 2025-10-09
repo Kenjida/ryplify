@@ -16,27 +16,27 @@ export default defineConfig(({ mode }) => {
           registerType: 'autoUpdate',
           includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
           manifest: {
-            name: 'Ryplify Admin',
+            name: 'Ryplify Administrace',
             short_name: 'RyplifyAdmin',
-            description: 'Ryplify Admin Panel PWA',
+            description: 'Administrační panel pro Ryplify',
             theme_color: '#0a0f1f',
             background_color: '#0a0f1f',
             display: 'standalone',
-            scope: '/',
+            scope: '/admin/',
             start_url: '/admin',
             icons: [
               {
-                src: 'pwa-192x192.png',
+                src: 'icon-192x192.png',
                 sizes: '192x192',
                 type: 'image/png',
               },
               {
-                src: 'pwa-512x512.png',
+                src: 'icon-512x512.png',
                 sizes: '512x512',
                 type: 'image/png',
               },
               {
-                src: 'pwa-512x512.png',
+                src: 'icon-512x512.png',
                 sizes: '512x512',
                 type: 'image/png',
                 purpose: 'any maskable',
