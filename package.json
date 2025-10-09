@@ -19,7 +19,7 @@
     "body-parser": "^2.2.0",
     "chart.js": "^4.5.0",
     "cors": "^2.8.5",
-    "express": "^5.1.0",
+    "express": "^4.19.2",
     "geoip-lite": "^1.4.10",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.3",
