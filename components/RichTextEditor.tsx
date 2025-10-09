@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import { fetchWithAuth } from '../utils/api'; // We need this for authenticated uploads
 
 interface RichTextEditorProps {
   content: string;
@@ -9,16 +10,40 @@ interface RichTextEditorProps {
 }
 
 const MenuBar: React.FC<{ editor: any }> = ({ editor }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   if (!editor) {
     return null;
   }
 
-  const addImage = () => {
-    const url = window.prompt('Zadejte URL adresu obrázku:');
-
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files?.length) {
+      return;
     }
+
+    const file = event.target.files[0];
+    const formData = new FormData();
+    formData.append('image', file);
+
+    // Use the existing upload endpoint
+    fetchWithAuth('/api/upload', {
+      method: 'POST',
+      body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.imageUrl) {
+        editor.chain().focus().setImage({ src: data.imageUrl }).run();
+      }
+    })
+    .catch(error => {
+      console.error('Image upload failed:', error);
+      alert('Nahrání obrázku se nezdařilo.');
+    });
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -31,7 +56,14 @@ const MenuBar: React.FC<{ editor: any }> = ({ editor }) => {
       <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}>H2</button>
       <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} className={editor.isActive('bulletList') ? 'is-active' : ''}>Bullet List</button>
       <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={editor.isActive('orderedList') ? 'is-active' : ''}>Ordered List</button>
-      <button type="button" onClick={addImage}>Přidat obrázek</button>
+      <button type="button" onClick={triggerFileInput}>Přidat obrázek</button>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        style={{ display: 'none' }}
+      />
     </div>
   );
 };
@@ -40,7 +72,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange }) =>
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image, // Add the Image extension
+      Image,
     ],
     content: content,
     onUpdate: ({ editor }) => {
