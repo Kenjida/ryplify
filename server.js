@@ -447,69 +447,159 @@ app.post('/api/contact', (req, res) => {
 
 app.post('/api/track', (req, res) => {
 
+
+
   const db = readDB();
+
+
 
   if (!db.pageViews) db.pageViews = [];
 
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
 
-  const newView = { id: Date.now(), path: req.body.path, timestamp: newtoISOString(), ip: ip };
+
+  
+
+
+
+  // Robust IP detection: handle x-forwarded-for header which can be a comma-separated list
+
+
+
+  const xForwardedFor = req.headers['x-forwarded-for'];
+
+
+
+  const ip = xForwardedFor 
+
+
+
+    ? (Array.isArray(xForwardedFor) ? xForwardedFor[0] : xForwardedFor.split(',')[0].trim()) 
+
+
+
+    : req.socket.remoteAddress || req.ip;
+
+
+
+
+
+
+
+  const newView = { id: Date.now(), path: req.body.path, timestamp: new Date().toISOString(), ip: ip };
+
+
 
   db.pageViews.push(newView);
 
+
+
   writeDB(db);
+
+
 
   res.status(201).json(newView);
 
+
+
 });
+
+
+
+
 
 
 
 app.get('/api/analytics', verifyToken, (req, res) => {
 
+
+
   const db = readDB();
+
+
 
   const pageViews = db.pageViews || [];
 
+
+
   const totalViews = pageViews.length;
+
+
 
   const viewsPerDay = pageViews.reduce((acc, view) => {
 
+
+
     const day = view.timestamp.split('T')[0];
+
+
 
     acc[day] = (acc[day] || 0) + 1;
 
+
+
     return acc;
+
+
 
   }, {});
 
+
+
   const topPages = Object.entries(pageViews.reduce((acc, view) => {
+
+
 
     acc[view.path] = (acc[view.path] || 0) + 1;
 
+
+
     return acc;
+
+
 
   }, {})).sort(([, a], [, b]) => b - a).slice(0, 10);
 
+
+
   const uniqueVisitors = new Set(pageViews.map(view => view.ip)).size;
 
+
+
   res.json({ totalViews, viewsPerDay, topPages, uniqueVisitors });
+
+
 
 });
 
 
 
-app.get('/api/analytics/ips', (req, res) => {
+
+
+
+
+app.get('/api/analytics/ips', verifyToken, (req, res) => {
+
+
 
     const db = readDB();
 
+
+
     const pageViews = db.pageViews || [];
+
+
 
     const viewsByIp = pageViews.reduce((acc, view) => {
 
+
+
         if (view.ip) acc[view.ip] = (acc[view.ip] || 0) + 1;
 
+
+
         return acc;
+
+
 
     }, {});
 
