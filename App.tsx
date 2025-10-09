@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import 'react-quill/dist/quill.snow.css'; // Import Quill styles globally
 import Home from './pages/Home';
 import Admin from './pages/Admin';
 import ArticlePage from './pages/ArticlePage';
