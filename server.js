@@ -37,9 +37,7 @@ app.use(bodyParser.json());
 
 // Serve static assets
 
-app.use('/uploads', express.static(uploadsDir));
-
-app.use(express.static(path.join(__dirname, 'dist')));
+    app.use('/uploads', express.static(uploadsDir));
 
 
 
@@ -515,43 +513,57 @@ app.get('/api/analytics/ips', (req, res) => {
 
     }, {});
 
-    const sortedIps = Object.entries(viewsByIp).sort(([, a], [, b]) => b - a);
+        const sortedIps = Object.entries(viewsByIp).sort(([, a], [, b]) => b - a);
 
-    res.json(sortedIps);
+        res.json(sortedIps);
 
-});
+    });
 
+    
 
+    // --- PRODUCTION STATIC SERVING ---
 
-// The "catchall" handler: for any request that doesn't
+    // This must be AFTER all API routes
 
+    const distPath = path.join(__dirname, 'dist');
 
+    if (fs.existsSync(distPath)) {
 
-// match one above, send back React's index.html file.
+        // Serve static files from the 'dist' directory
 
+        app.use(express.static(distPath)); 
 
+    
 
-app.get('/*', (req, res) => {
+        // Fallback for client-side routing, using the robust middleware pattern
 
+        app.use((req, res, next) => {
 
+            if (req.method === 'GET' && !res.headersSent) {
 
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+                 res.sendFile(path.join(distPath, 'index.html'));
 
+            } else {
 
+                 next(); 
 
-});
+            }
 
+        });
 
+    }
 
+    
 
+    
 
-// --- SERVER START ---
+    // --- SERVER START ---
 
-app.listen(port, () => {
+    app.listen(port, () => {
 
-  initializeUser();
+      initializeUser();
 
-  console.log(`Backend server listening at http://localhost:${port}`);
+      console.log(`Backend server listening at http://localhost:${port}`);
 
-});
+    });
 
