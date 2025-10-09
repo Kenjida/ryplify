@@ -6,17 +6,17 @@
 
 /* Custom styles for SunEditor image alignment to work with Tailwind Prose */
 .prose figure.se-figure-center {
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 .prose figure.se-figure-right {
-  margin-left: auto;
-  margin-right: 0;
+  margin-left: auto !important;
+  margin-right: 0 !important;
 }
 .prose figure.se-figure-left {
-  margin-left: 0;
-  margin-right: auto;
+  margin-left: 0 !important;
+  margin-right: auto !important;
 }
 .prose figure {
-    display: block;
+    display: block !important;
 }
