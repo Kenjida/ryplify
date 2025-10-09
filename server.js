@@ -195,7 +195,19 @@ const writeDB = (data) => {
 
 
 
+
+
+
+
+
+
   try {
+
+
+
+
+
+
 
 
 
@@ -207,13 +219,55 @@ const writeDB = (data) => {
 
 
 
+
+
+
+
+
+
+    return true; // Success
+
+
+
+
+
+
+
+
+
+
+
   } catch (error) {
 
 
 
 
 
-    console.error("Error writing to database file:", error);
+
+
+
+
+
+
+    console.error("CRITICAL: Error writing to database file:", error);
+
+
+
+
+
+
+
+
+
+
+
+    return false; // Failure
+
+
+
+
+
+
 
 
 
@@ -225,49 +279,321 @@ const writeDB = (data) => {
 
 
 
+
+
+
+
+
+
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 // --- INITIALIZATION ---
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const initializeUser = async () => {
+
+
+
+
+
+
+
+
+
+
 
   const db = readDB();
 
+
+
+
+
+
+
+
+
+
+
   if (!db.user) {
+
+
+
+
+
+
+
+
+
+
 
     console.log('No user found, creating default user...');
 
+
+
+
+
+
+
+
+
+
+
     const salt = await bcrypt.genSalt(10);
+
+
+
+
+
+
+
+
+
+
 
     const hashedPassword = await bcrypt.hash('Samurai10', salt);
 
+
+
+
+
+
+
+
+
+
+
     db.user = {
+
+
+
+
+
+
+
+
+
+
 
       username: 'Kenji',
 
+
+
+
+
+
+
+
+
+
+
       password: hashedPassword
+
+
+
+
+
+
+
+
+
+
 
     };
 
-    writeDB(db);
+
+
+
+
+
+
+
+
+
+
+    if (!writeDB(db)) {
+
+
+
+
+
+
+
+
+
+
+
+      console.error('Failed to write default user to DB during initialization.');
+
+
+
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
 
     console.log('Default user created.');
 
+
+
+
+
+
+
+
+
+
+
   }
+
+
+
+
+
+
+
+
+
+
 
 };
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Create uploads directory if it doesn't exist
+
+
+
+
+
+
+
+
+
+
 
 if (!fs.existsSync(uploadsDir)) {
 
+
+
+
+
+
+
+
+
+
+
   fs.mkdirSync(uploadsDir, { recursive: true });
 
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -275,23 +601,143 @@ if (!fs.existsSync(uploadsDir)) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Login Endpoint
+
+
+
+
+
+
+
+
+
+
 
 app.post('/api/login', async (req, res) => {
 
+
+
+
+
+
+
+
+
+
+
   const { username, password } = req.body;
 
+
+
+
+
+
+
+
+
+
+
   const db = readDB();
+
+
+
+
+
+
+
+
+
+
 
   const user = db.user;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   if (!user || user.username !== username) {
+
+
+
+
+
+
+
+
+
+
 
     return res.status(400).json({ message: 'Nesprávné jméno nebo heslo.' });
 
+
+
+
+
+
+
+
+
+
+
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -299,29 +745,179 @@ app.post('/api/login', async (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   if (!isMatch) {
 
+
+
+
+
+
+
+
+
+
+
     return res.status(400).json({ message: 'Nesprávné jméno nebo heslo.' });
+
+
+
+
+
+
+
+
+
+
 
   }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const token = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '8h' });
 
+
+
+
+
+
+
+
+
+
+
   res.json({ token });
+
+
+
+
+
+
+
+
+
+
 
 });
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Token Verification Middleware
+
+
+
+
+
+
+
+
+
+
 
 const verifyToken = (req, res, next) => {
 
+
+
+
+
+
+
+
+
+
+
     const authHeader = req.headers['authorization'];
 
+
+
+
+
+
+
+
+
+
+
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -329,79 +925,525 @@ const verifyToken = (req, res, next) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     jwt.verify(token, JWT_SECRET, (err, user) => {
+
+
+
+
+
+
+
+
+
+
 
         if (err) return res.sendStatus(403);
 
+
+
+
+
+
+
+
+
+
+
         req.user = user;
+
+
+
+
+
+
+
+
+
+
 
         next(); // pass the execution off to whatever request the client intended
 
+
+
+
+
+
+
+
+
+
+
     });
 
+
+
+
+
+
+
+
+
+
+
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 // Change Password Endpoint
 
+
+
+
+
+
+
+
+
+
+
 app.post('/api/change-password', verifyToken, async (req, res) => {
+
+
+
+
+
+
+
+
+
+
 
     const { oldPassword, newPassword } = req.body;
 
+
+
+
+
+
+
+
+
+
+
     const db = readDB();
+
+
+
+
+
+
+
+
+
+
 
     const user = db.user;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+
+
+
+
+
+
+
+
+
 
     if (!isMatch) {
 
+
+
+
+
+
+
+
+
+
+
         return res.status(400).json({ message: 'Původní heslo není správné.' });
+
+
+
+
+
+
+
+
+
+
 
     }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const salt = await bcrypt.genSalt(10);
+
+
+
+
+
+
+
+
+
+
 
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
+
+
+
+
+
+
+
+
+
+
     db.user.password = hashedPassword;
 
-    writeDB(db);
 
 
 
-    res.json({ message: 'Heslo bylo úspěšně změněno.' });
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    if (writeDB(db)) {
+
+
+
+
+
+
+
+
+
+
+
+        res.json({ message: 'Heslo bylo úspěšně změněno.' });
+
+
+
+
+
+
+
+
+
+
+
+    } else {
+
+
+
+
+
+
+
+
+
+
+
+        res.status(500).json({ message: 'Nepodařilo se uložit nové heslo.' });
+
+
+
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
 
 });
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // --- UTILITY FUNCTIONS ---
+
+
+
+
+
+
+
+
+
+
 
 const slugify = (text) => {
 
+
+
+
+
+
+
+
+
+
+
   return text.toString().toLowerCase()
+
+
+
+
+
+
+
+
+
+
 
     .normalize('NFD')           // split an accented letter in the base letter and the acent
 
+
+
+
+
+
+
+
+
+
+
     .replace(/[\u0300-\u036f]/g, '') // remove all previously split accents
+
+
+
+
+
+
+
+
+
+
 
     .replace(/\s+/g, '-')        // Replace spaces with -
 
+
+
+
+
+
+
+
+
+
+
     .replace(/[^\w\-]+/g, '')    // Remove all non-word chars
+
+
+
+
+
+
+
+
+
+
 
     .replace(/\-\-+/g, '-')      // Replace multiple - with single -
 
+
+
+
+
+
+
+
+
+
+
     .replace(/^-+/, '')          // Trim - from start of text
+
+
+
+
+
+
+
+
+
+
 
     .replace(/-+$/, '');         // Trim - from end of text
 
+
+
+
+
+
+
+
+
+
+
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -409,181 +1451,1273 @@ const slugify = (text) => {
 
 // --- FILE UPLOAD ---
 
+
+
+
+
+
+
+
+
+
+
 const storage = multer.diskStorage({
+
+
+
+
+
+
+
+
+
+
 
   destination: (req, file, cb) => cb(null, uploadsDir),
 
+
+
+
+
+
+
+
+
+
+
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 
+
+
+
+
+
+
+
+
+
+
 });
+
+
+
+
+
+
+
+
+
+
 
 const upload = multer({ storage: storage });
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 app.post('/api/upload', verifyToken, upload.single('image'), (req, res) => {
+
+
+
+
+
+
+
+
+
+
 
   if (!req.file) {
 
+
+
+
+
+
+
+
+
+
+
     return res.status(400).send('No file uploaded.');
+
+
+
+
+
+
+
+
+
+
 
   }
 
+
+
+
+
+
+
+
+
+
+
   res.json({ imageUrl: `/uploads/${req.file.filename}` });
 
+
+
+
+
+
+
+
+
+
+
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 // --- ARTICLES API ---
 
+
+
+
+
+
+
+
+
+
+
 app.get('/api/articles', (req, res) => {
+
+
+
+
+
+
+
+
+
+
 
   const db = readDB();
 
+
+
+
+
+
+
+
+
+
+
   res.json(db.articles);
 
+
+
+
+
+
+
+
+
+
+
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 app.get('/api/articles/:slug', (req, res) => {
 
+
+
+
+
+
+
+
+
+
+
   const db = readDB();
+
+
+
+
+
+
+
+
+
+
 
   // First, try to find by slug
 
+
+
+
+
+
+
+
+
+
+
   let article = db.articles.find(a => a.slug === req.params.slug);
+
+
+
+
+
+
+
+
+
+
 
   // If not found, try to find by ID (for backward compatibility)
 
+
+
+
+
+
+
+
+
+
+
   if (!article) {
+
+
+
+
+
+
+
+
+
+
 
     const articleId = parseInt(req.params.slug, 10);
 
+
+
+
+
+
+
+
+
+
+
     if (!isNaN(articleId)) {
+
+
+
+
+
+
+
+
+
+
 
       article = db.articles.find(a => a.id === articleId);
 
+
+
+
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
 
   }
 
+
+
+
+
+
+
+
+
+
+
   
+
+
+
+
+
+
+
+
+
+
 
   if (article) res.json(article);
 
+
+
+
+
+
+
+
+
+
+
   else res.status(404).send('Article not found');
 
+
+
+
+
+
+
+
+
+
+
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 app.post('/api/articles', verifyToken, (req, res) => {
 
+
+
+
+
+
+
+
+
+
+
   const db = readDB();
+
+
+
+
+
+
+
+
+
+
 
   const { title, perex, content, imageUrl } = req.body;
 
+
+
+
+
+
+
+
+
+
+
   const slug = slugify(title);
+
+
+
+
+
+
+
+
+
+
 
   const newArticle = { id: Date.now(), title, perex, content, imageUrl, slug };
 
+
+
+
+
+
+
+
+
+
+
   db.articles.push(newArticle);
 
-  writeDB(db);
 
-  res.status(201).json(newArticle);
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  if (writeDB(db)) {
+
+
+
+
+
+
+
+
+
+
+
+    res.status(201).json(newArticle);
+
+
+
+
+
+
+
+
+
+
+
+  } else {
+
+
+
+
+
+
+
+
+
+
+
+    res.status(500).json({ message: 'Failed to save article.' });
+
+
+
+
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
 
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 app.put('/api/articles/:id', verifyToken, (req, res) => {
 
+
+
+
+
+
+
+
+
+
+
   const db = readDB();
+
+
+
+
+
+
+
+
+
+
 
   const articleId = parseInt(req.params.id, 10);
 
+
+
+
+
+
+
+
+
+
+
   const articleIndex = db.articles.findIndex(a => a.id === articleId);
+
+
+
+
+
+
+
+
+
+
 
   if (articleIndex === -1) return res.status(404).send('Article not found');
 
+
+
+
+
+
+
+
+
+
+
   
 
+
+
+
+
+
+
+
+
+
+
   const { title } = req.body;
+
+
+
+
+
+
+
+
+
+
 
   const newSlug = title ? slugify(title) : db.articles[articleIndex].slug;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const updatedArticle = { 
+
+
+
+
+
+
+
+
+
+
 
     ...db.articles[articleIndex], 
 
+
+
+
+
+
+
+
+
+
+
     ...req.body,
+
+
+
+
+
+
+
+
+
+
 
     slug: newSlug
 
+
+
+
+
+
+
+
+
+
+
   };
+
+
+
+
+
+
+
+
+
+
 
   db.articles[articleIndex] = updatedArticle;
 
-  writeDB(db);
 
-  res.json(updatedArticle);
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  if (writeDB(db)) {
+
+
+
+
+
+
+
+
+
+
+
+    res.json(updatedArticle);
+
+
+
+
+
+
+
+
+
+
+
+  } else {
+
+
+
+
+
+
+
+
+
+
+
+    res.status(500).json({ message: 'Failed to update article.' });
+
+
+
+
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
 
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 app.delete('/api/articles/:id', verifyToken, (req, res) => {
 
+
+
+
+
+
+
+
+
+
+
   const db = readDB();
+
+
+
+
+
+
+
+
+
+
 
   const newArticles = db.articles.filter(a => a.id !== parseInt(req.params.id, 10));
 
+
+
+
+
+
+
+
+
+
+
   if (db.articles.length === newArticles.length) return res.status(404).send('Article not found');
+
+
+
+
+
+
+
+
+
+
 
   db.articles = newArticles;
 
-  writeDB(db);
 
-  res.status(204).send();
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  if (writeDB(db)) {
+
+
+
+
+
+
+
+
+
+
+
+    res.status(204).send();
+
+
+
+
+
+
+
+
+
+
+
+  } else {
+
+
+
+
+
+
+
+
+
+
+
+    res.status(500).json({ message: 'Failed to delete article.' });
+
+
+
+
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
 
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 // --- OTHER APIs (Contact, Analytics) ---
 
+
+
+
+
+
+
+
+
+
+
 app.get('/api/contact', verifyToken, (req, res) => {
+
+
+
+
+
+
+
+
+
+
 
   const db = readDB();
 
+
+
+
+
+
+
+
+
+
+
   res.json(db.formSubmissions || []);
 
+
+
+
+
+
+
+
+
+
+
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 // POST a new form submission
 
+
+
+
+
+
+
+
+
+
+
 app.post('/api/contact', (req, res) => {
+
+
+
+
+
+
+
+
+
+
 
   const db = readDB();
 
+
+
+
+
+
+
+
+
+
+
   if (!db.formSubmissions) db.formSubmissions = [];
+
+
+
+
+
+
+
+
+
+
 
   const newSubmission = { id: Date.now(), submittedAt: new Date().toISOString(), ...req.body };
 
+
+
+
+
+
+
+
+
+
+
   db.formSubmissions.push(newSubmission);
 
-  writeDB(db);
 
-  res.status(201).json(newSubmission);
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  if (writeDB(db)) {
+
+
+
+
+
+
+
+
+
+
+
+    res.status(201).json(newSubmission);
+
+
+
+
+
+
+
+
+
+
+
+  } else {
+
+
+
+
+
+
+
+
+
+
+
+    res.status(500).json({ message: 'Failed to save submission.' });
+
+
+
+
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
 
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -591,7 +2725,47 @@ app.post('/api/track', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const db = readDB();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -599,7 +2773,47 @@ app.post('/api/track', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -607,7 +2821,47 @@ app.post('/api/track', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const xForwardedFor = req.headers['x-forwarded-for'];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -615,7 +2869,47 @@ app.post('/api/track', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     ? (Array.isArray(xForwardedFor) ? xForwardedFor[0] : xForwardedFor.split(',')[0].trim()) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -627,7 +2921,67 @@ app.post('/api/track', (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const newView = { id: Date.now(), path: req.body.path, timestamp: new Date().toISOString(), ip: ip };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -635,11 +2989,95 @@ app.post('/api/track', (req, res) => {
 
 
 
-  writeDB(db);
 
 
 
-  res.status(201).json(newView);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  if (writeDB(db)) {
+
+
+
+
+
+
+
+
+
+
+
+    res.status(201).json(newView);
+
+
+
+
+
+
+
+
+
+
+
+  } else {
+
+
+
+
+
+
+
+
+
+
+
+    res.status(500).json({ message: 'Failed to save page view.' });
+
+
+
+
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+
 
 
 
