@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import TextAlign from '@tiptap/extension-text-align';
 import { fetchWithAuth } from '../utils/api'; // We need this for authenticated uploads
 
 interface RichTextEditorProps {
@@ -25,7 +26,6 @@ const MenuBar: React.FC<{ editor: any }> = ({ editor }) => {
     const formData = new FormData();
     formData.append('image', file);
 
-    // Use the existing upload endpoint
     fetchWithAuth('/api/upload', {
       method: 'POST',
       body: formData,
@@ -46,8 +46,18 @@ const MenuBar: React.FC<{ editor: any }> = ({ editor }) => {
     fileInputRef.current?.click();
   };
 
+  const setImageSize = () => {
+    const width = window.prompt('Zadejte novou šířku obrázku v pixelech (např. 300):');
+    if (width && !isNaN(Number(width))) {
+      editor.chain().focus().updateAttributes('image', { style: `width: ${width}px` }).run();
+    } else if (width) {
+      alert('Zadejte prosím platné číslo.');
+    }
+  };
+
   return (
-    <div className="border border-slate-600 rounded-t-lg p-2 bg-slate-800 flex flex-wrap gap-2">
+    <div className="border border-slate-600 rounded-t-lg p-2 bg-slate-800 flex flex-wrap gap-2 items-center">
+      {/* Text formatting buttons */}
       <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? 'is-active' : ''}>Bold</button>
       <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? 'is-active' : ''}>Italic</button>
       <button type="button" onClick={() => editor.chain().focus().toggleStrike().run()} className={editor.isActive('strike') ? 'is-active' : ''}>Strike</button>
@@ -56,7 +66,20 @@ const MenuBar: React.FC<{ editor: any }> = ({ editor }) => {
       <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}>H2</button>
       <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} className={editor.isActive('bulletList') ? 'is-active' : ''}>Bullet List</button>
       <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={editor.isActive('orderedList') ? 'is-active' : ''}>Ordered List</button>
+      
+      {/* Alignment buttons */}
+      <button type="button" onClick={() => editor.chain().focus().setTextAlign('left').run()} className={editor.isActive({ textAlign: 'left' }) ? 'is-active' : ''}>Left</button>
+      <button type="button" onClick={() => editor.chain().focus().setTextAlign('center').run()} className={editor.isActive({ textAlign: 'center' }) ? 'is-active' : ''}>Center</button>
+      <button type="button" onClick={() => editor.chain().focus().setTextAlign('right').run()} className={editor.isActive({ textAlign: 'right' }) ? 'is-active' : ''}>Right</button>
+      
+      {/* Image buttons */}
       <button type="button" onClick={triggerFileInput}>Přidat obrázek</button>
+      {editor.isActive('image') && (
+        <button type="button" onClick={setImageSize} className="text-red-400 border border-red-400 px-2 py-1 rounded">
+          Změnit velikost obrázku
+        </button>
+      )}
+
       <input
         type="file"
         ref={fileInputRef}
@@ -72,7 +95,15 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange }) =>
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image,
+      Image.configure({
+        // Allow inline styling for resizing
+        HTMLAttributes: {
+          style: '',
+        },
+      }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph', 'image'],
+      }),
     ],
     content: content,
     onUpdate: ({ editor }) => {
