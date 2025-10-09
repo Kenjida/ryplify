@@ -1,31 +1,55 @@
 import React, { useRef } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Node } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
 import { fetchWithAuth } from '../utils/api';
 
-// 1. Extend the Image extension to be a block node and support style attributes
+// --- Custom Image Extension ---
+// This is the key to making alignment work correctly.
+// We wrap the image in a div and apply text-align to the div.
 const CustomImage = Image.extend({
-  inline: false, // This is crucial for alignment
+  name: 'custom-image',
+  group: 'block',
+  inline: false,
+
   addAttributes() {
     return {
-      ...this.parent?.(),
-      src: {
-        default: null,
-      },
-      alt: {
-        default: null,
-      },
-      title: {
-        default: null,
-      },
-      style: { // Allow the style attribute for resizing
-        default: null,
-      },
+      src: { default: null },
+      alt: { default: null },
+      title: { default: null },
+      style: { default: null }, // For resizing
     };
   },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'div[data-type="image-wrapper"]',
+        getAttrs: (dom) => {
+            const img = dom.querySelector('img');
+            return {
+                src: img?.getAttribute('src'),
+                alt: img?.getAttribute('alt'),
+                title: img?.getAttribute('title'),
+                style: img?.getAttribute('style'),
+            }
+        },
+      },
+    ];
+  },
+
+  renderHTML({ HTMLAttributes, node }) {
+    // The wrapper div is what gets aligned
+    const textAlign = node.attrs.textAlign || 'left';
+    return [
+      'div',
+      { 'data-type': 'image-wrapper', style: `text-align: ${textAlign}` },
+      ['img', HTMLAttributes],
+    ];
+  },
 });
+
 
 interface RichTextEditorProps {
   content: string;
@@ -68,7 +92,6 @@ const MenuBar: React.FC<{ editor: any }> = ({ editor }) => {
     const width = window.prompt('Zadejte novou šířku obrázku v pixelech:', currentWidth);
     
     if (width && !isNaN(Number(width))) {
-      // Set the style attribute on the image node
       editor.chain().focus().updateAttributes('image', { style: `width: ${width}px;` }).run();
     } else if (width) {
       alert('Zadejte prosím platné číslo.');
@@ -105,11 +128,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange }) =>
   const editor = useEditor({
     extensions: [
       StarterKit,
-      // 2. Use the custom image extension
-      CustomImage,
-      // 3. Configure TextAlign to work on images as well
+      CustomImage, // Use the fully custom image extension
       TextAlign.configure({
-        types: ['heading', 'paragraph', 'image'],
+        types: ['heading', 'paragraph', 'custom-image'], // Apply alignment to our custom image wrapper
       }),
     ],
     content: content,
