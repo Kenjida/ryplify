@@ -13,7 +13,7 @@ const CreationsSection: React.FC = () => {
 
   useEffect(() => {
     // Fetch articles from the main site's live API
-    fetch('https://vibe.ryplify.eu/api/articles')
+    fetch('https://vibecoding.ryplify.eu/api/articles')
       .then(response => response.json())
       .then(data => {
         // Sort articles to get the newest ones and take the latest 3
@@ -34,14 +34,14 @@ const CreationsSection: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {articles.map(article => (
             <a 
-              href={`https://vibe.ryplify.eu/clanek/${article.slug || article.id}`} 
+              href={`https://vibecoding.ryplify.eu/clanek/${article.slug || article.id}`} 
               key={article.id} 
               target="_blank" 
               rel="noopener noreferrer"
               className="block bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden shadow-lg hover:border-red-500 hover:-translate-y-2 transition-all duration-300"
             >
               {article.imageUrl && (
-                <img src={`https://vibe.ryplify.eu${article.imageUrl}`} alt={article.title} className="w-full h-48 object-cover" />
+                <img src={`https://vibecoding.ryplify.eu${article.imageUrl}`} alt={article.title} className="w-full h-48 object-cover" />
               )}
               <div className="p-6">
                 <h3 className="text-xl font-bold text-white mb-2">{article.title}</h3>

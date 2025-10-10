@@ -23,10 +23,13 @@ const Header: React.FC = () => {
           <a href="#pro-koho" className="hover:text-red-500 transition-colors duration-300">Pro koho?</a>
           <a href="#o-mne" className="hover:text-red-500 transition-colors duration-300">O mně</a>
           <a href="#proces" className="hover:text-red-500 transition-colors duration-300">Jak to probíhá</a>
-          <a href="#creations" className="hover:text-red-500 transition-colors duration-300">Projekty</a>
+          <a href="https://vibecoding.ryplify.eu/projekt" target="_blank" rel="noopener noreferrer" className="hover:text-red-500 transition-colors duration-300">Projekty</a>
         </nav>
-        <a href="https://vibecoding.ryplify.eu/#contact" target="_blank" rel="noopener noreferrer" className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-transform duration-300 hover:scale-105">
+        <a href="https://vibecoding.ryplify.eu/#contact" target="_blank" rel="noopener noreferrer" className="hidden md:block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-transform duration-300 hover:scale-105">
           Nezávazná poptávka
+        </a>
+        <a href="https://vibecoding.ryplify.eu/projekt" target="_blank" rel="noopener noreferrer" className="md:hidden bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-transform duration-300 hover:scale-105">
+          Projekt
         </a>
       </div>
     </header>
