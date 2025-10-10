@@ -69,7 +69,14 @@ const Admin: React.FC = () => {
   const fetchSubmissions = () => {
     fetchWithAuth('/api/contact')
       .then(response => response.json())
-      .then(data => setFormSubmissions(data));
+      .then(data => {
+        if (Array.isArray(data)) {
+          const sortedData = data.sort((a: FormSubmission, b: FormSubmission) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+          setFormSubmissions(sortedData);
+        } else {
+          setFormSubmissions([]);
+        }
+      });
   };
 
   useEffect(() => {
@@ -149,6 +156,19 @@ const Admin: React.FC = () => {
     const body = encodeURIComponent(`\n\n---\nPůvodní zpráva:\n${submission.message}`);
     window.location.href = `mailto:${submission.email}?subject=${subject}&body=${body}`;
   }
+
+  const handleDeleteSubmission = (id: number) => {
+    if (window.confirm('Opravdu chcete smazat tento záznam?')) {
+      fetchWithAuth(`/api/contact/${id}`, { method: 'DELETE' })
+        .then((res) => {
+          if (res.ok) {
+            fetchSubmissions();
+          } else {
+            console.error("Failed to delete submission");
+          }
+        });
+    }
+  };
 
   const handleChangePassword = async (e: FormEvent) => {
     e.preventDefault();
@@ -325,7 +345,27 @@ const Admin: React.FC = () => {
 
       <div className="p-4 border rounded-lg border-slate-700">
         <h2 className="text-xl font-bold mb-4">Správa formuláře</h2>
-        <div className="overflow-x-auto">
+        {/* On mobile, show a list of cards */}
+        <div className="md:hidden">
+          {formSubmissions.map(submission => (
+            <div key={submission.id} className="bg-slate-800 rounded-lg p-4 mb-4">
+              <div onClick={() => handleSubmissionClick(submission)} className="cursor-pointer">
+                <p><strong className="font-semibold">Datum:</strong> {new Date(submission.submittedAt).toLocaleString()}</p>
+                <p><strong className="font-semibold">Jméno:</strong> {submission.name}</p>
+                <p><strong className="font-semibold">Email:</strong> {submission.email}</p>
+                <p className="truncate"><strong className="font-semibold">Zpráva:</strong> {submission.message}</p>
+              </div>
+              <button 
+                onClick={(e) => { e.stopPropagation(); handleDeleteSubmission(submission.id); }}
+                className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded w-full"
+              >
+                Smazat
+              </button>
+            </div>
+          ))}
+        </div>
+        {/* On desktop, show a table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>
@@ -333,15 +373,24 @@ const Admin: React.FC = () => {
                 <th className="border-b border-slate-700 p-2">Jméno</th>
                 <th className="border-b border-slate-700 p-2">Email</th>
                 <th className="border-b border-slate-700 p-2">Zpráva</th>
+                <th className="border-b border-slate-700 p-2">Akce</th>
               </tr>
             </thead>
             <tbody>
               {formSubmissions.map(submission => (
-                <tr key={submission.id} onClick={() => handleSubmissionClick(submission)} className="cursor-pointer hover:bg-slate-800 transition-colors">
-                  <td className="border-b border-slate-700 p-2">{new Date(submission.submittedAt).toLocaleString()}</td>
-                  <td className="border-b border-slate-700 p-2">{submission.name}</td>
-                  <td className="border-b border-slate-700 p-2">{submission.email}</td>
-                  <td className="border-b border-slate-700 p-2">{submission.message}</td>
+                <tr key={submission.id} className="hover:bg-slate-800 transition-colors">
+                  <td onClick={() => handleSubmissionClick(submission)} className="cursor-pointer border-b border-slate-700 p-2">{new Date(submission.submittedAt).toLocaleString()}</td>
+                  <td onClick={() => handleSubmissionClick(submission)} className="cursor-pointer border-b border-slate-700 p-2">{submission.name}</td>
+                  <td onClick={() => handleSubmissionClick(submission)} className="cursor-pointer border-b border-slate-700 p-2">{submission.email}</td>
+                  <td onClick={() => handleSubmissionClick(submission)} className="cursor-pointer border-b border-slate-700 p-2 whitespace-pre-wrap break-words max-w-xs">{submission.message}</td>
+                  <td className="border-b border-slate-700 p-2">
+                    <button 
+                      onClick={() => handleDeleteSubmission(submission.id)} 
+                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                    >
+                      Smazat
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
