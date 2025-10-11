@@ -115,43 +115,45 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
                 {isRunning ? 'Stop' : 'Start'}
               </button>
             ) : (
-              <div className="flex flex-row gap-2">
+              <div className="flex flex-col md:flex-row gap-2">
                 <button
                   onClick={generateInvoice}
-                  className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-28 bg-rose-600 hover:bg-rose-700">
+                  className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-rose-600 hover:bg-rose-700">
                   Stáhnout PDF
                 </button>
                 {onDeleteProject && (
                   <button
                     onClick={() => onDeleteProject(project.id)}
-                    className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-28 bg-gray-700 hover:bg-gray-600">
+                    className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-gray-700 hover:bg-gray-600">
                     Smazat
                   </button>
                 )}
               </div>
             )}
-            <div className="flex items-center mt-2">
-              <span className="text-sm text-gray-400 mr-2">{project.isActive ? 'Aktivní' : 'Neaktivní'}</span>
-              <label htmlFor={`toggle-active-${project.id}`} className="flex items-center cursor-pointer">
-                <div className="relative">
-                  <input type="checkbox" id={`toggle-active-${project.id}`} className="sr-only" checked={project.isActive} onChange={() => onToggleActive(project.id)} />
-                  <div className="block bg-zinc-600 w-14 h-8 rounded-full"></div>
-                  <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${project.isActive ? 'transform translate-x-6 bg-red-500' : ''}`}></div>
-                </div>
-              </label>
+            <div className="flex flex-col md:flex-row items-end md:items-center mt-2 gap-4">
+              <div className="flex items-center">
+                <span className="text-sm text-gray-400 mr-2">{project.isActive ? 'Aktivní' : 'Neaktivní'}</span>
+                <label htmlFor={`toggle-active-${project.id}`} className="flex items-center cursor-pointer">
+                  <div className="relative">
+                    <input type="checkbox" id={`toggle-active-${project.id}`} className="sr-only" checked={project.isActive} onChange={() => onToggleActive(project.id)} />
+                    <div className="block bg-zinc-600 w-14 h-8 rounded-full"></div>
+                    <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${project.isActive ? 'transform translate-x-6 bg-red-500' : ''}`}></div>
+                  </div>
+                </label>
+              </div>
+              {onToggleFree && (
+                  <div className="flex items-center">
+                      <span className="text-sm text-gray-400 mr-2">{project.isFree ? 'Zdarma' : 'Placený'}</span>
+                      <label htmlFor={`toggle-free-${project.id}`} className="flex items-center cursor-pointer">
+                          <div className="relative">
+                              <input type="checkbox" id={`toggle-free-${project.id}`} className="sr-only" checked={project.isFree} onChange={() => onToggleFree(project.id)} />
+                              <div className="block bg-zinc-600 w-14 h-8 rounded-full"></div>
+                              <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${project.isFree ? 'transform translate-x-6 bg-blue-500' : ''}`}></div>
+                          </div>
+                      </label>
+                  </div>
+              )}
             </div>
-            {onToggleFree && (
-                <div className="flex items-center mt-2">
-                    <span className="text-sm text-gray-400 mr-2">{project.isFree ? 'Zdarma' : 'Placený'}</span>
-                    <label htmlFor={`toggle-free-${project.id}`} className="flex items-center cursor-pointer">
-                        <div className="relative">
-                            <input type="checkbox" id={`toggle-free-${project.id}`} className="sr-only" checked={project.isFree} onChange={() => onToggleFree(project.id)} />
-                            <div className="block bg-zinc-600 w-14 h-8 rounded-full"></div>
-                            <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${project.isFree ? 'transform translate-x-6 bg-blue-500' : ''}`}></div>
-                        </div>
-                    </label>
-                </div>
-            )}
           </div>
         )}
       </div>
