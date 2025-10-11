@@ -18,7 +18,8 @@ const ProjectTimeTrackerAdmin: React.FC = () => {
     onToggleTimer,
     onToggleActive,
     onToggleFree,
-    handleNoteChange
+    handleNoteChange,
+    deleteProject
   } = useProjectTracker();
 
   return (
@@ -35,6 +36,7 @@ const ProjectTimeTrackerAdmin: React.FC = () => {
                   showInactive={showInactive}
                   onToggleTimer={onToggleTimer}
                   onToggleActive={onToggleActive}
+                  onDeleteProject={deleteProject}
                   onToggleFree={onToggleFree}
                   liveNotes={liveNotes}
                   handleNoteChange={handleNoteChange}

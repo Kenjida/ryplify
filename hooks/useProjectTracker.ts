@@ -78,6 +78,10 @@ export const useProjectTracker = () => {
     );
   }, [setProjects]);
 
+  const deleteProject = (id: string) => {
+    setProjects(projects.filter(p => p.id !== id));
+  };
+
   return {
     projects,
     hourlyRate,
@@ -89,6 +93,7 @@ export const useProjectTracker = () => {
     onToggleTimer,
     onToggleActive,
     onToggleFree,
-    handleNoteChange
+    handleNoteChange,
+    deleteProject
   };
 };
