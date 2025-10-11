@@ -8,6 +8,7 @@ interface ProjectItemProps {
   hourlyRate: number;
   onToggleTimer: (id: string, isRunning: boolean) => void;
   onToggleActive: (id: string) => void;
+  onDeleteProject: (id: string) => void;
 }
 
 const formatTime = (totalSeconds: number): string => {
@@ -19,7 +20,7 @@ const formatTime = (totalSeconds: number): string => {
     .join(":");
 };
 
-const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggleTimer, onToggleActive }) => {
+const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggleTimer, onToggleActive, onDeleteProject }) => {
   const [displaySeconds, setDisplaySeconds] = useState(project.totalSeconds);
 
   useEffect(() => {
@@ -102,12 +103,20 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
               {isRunning ? 'Stop' : 'Start'}
             </button>
           ) : (
-            <button
-              onClick={generateInvoice}
-              className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-28 bg-rose-600 hover:bg-rose-700"
-            >
-              Stáhnout PDF
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={generateInvoice}
+                className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-28 bg-rose-600 hover:bg-rose-700"
+              >
+                Stáhnout PDF
+              </button>
+              <button
+                onClick={() => onDeleteProject(project.id)}
+                className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-28 bg-gray-700 hover:bg-gray-600"
+              >
+                Smazat
+              </button>
+            </div>
           )}
           <div className="flex items-center mt-2">
             <span className="text-sm text-gray-400 mr-2">{project.isActive ? 'Aktivní' : 'Neaktivní'}</span>

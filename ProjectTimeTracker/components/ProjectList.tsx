@@ -9,9 +9,10 @@ interface ProjectListProps {
   showInactive: boolean;
   onToggleTimer: (id: string, isRunning: boolean) => void;
   onToggleActive: (id: string) => void;
+  onDeleteProject: (id: string) => void;
 }
 
-const ProjectList: React.FC<ProjectListProps> = ({ projects, hourlyRate, showInactive, onToggleTimer, onToggleActive }) => {
+const ProjectList: React.FC<ProjectListProps> = ({ projects, hourlyRate, showInactive, onToggleTimer, onToggleActive, onDeleteProject }) => {
   const filteredProjects = showInactive ? projects : projects.filter(p => p.isActive);
 
   if (filteredProjects.length === 0) {
@@ -31,6 +32,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ projects, hourlyRate, showIna
           hourlyRate={hourlyRate}
           onToggleTimer={onToggleTimer}
           onToggleActive={onToggleActive}
+          onDeleteProject={onDeleteProject}
         />
       ))}
     </div>

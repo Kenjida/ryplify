@@ -57,6 +57,10 @@ const App: React.FC = () => {
     );
   }, [setProjects]);
 
+  const deleteProject = (id: string) => {
+    setProjects(projects.filter(p => p.id !== id));
+  };
+
 
   return (
     <div className="min-h-screen bg-zinc-900 text-white p-4 sm:p-6 lg:p-8">
@@ -85,6 +89,7 @@ const App: React.FC = () => {
                   showInactive={showInactive}
                   onToggleTimer={onToggleTimer}
                   onToggleActive={onToggleActive}
+                  onDeleteProject={deleteProject}
                />
             </div>
           </div>
