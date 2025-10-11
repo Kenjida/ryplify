@@ -103,7 +103,7 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
               {isRunning ? 'Stop' : 'Start'}
             </button>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-row gap-2">
               <button
                 onClick={generateInvoice}
                 className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-28 bg-rose-600 hover:bg-rose-700"
