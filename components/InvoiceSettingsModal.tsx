@@ -3,8 +3,6 @@ import type { Project } from './types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
-// Import the font data directly from the local utility file
-import { robotoFontData } from '../utils/roboto-font';
 
 interface InvoiceSettingsModalProps {
   project: Project | null;
@@ -47,6 +45,7 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
     variableSymbol: new Date().getTime().toString().slice(-8),
   });
   const [logo, setLogo] = useState<string | null>(null);
+  const [font, setFont] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
@@ -63,6 +62,26 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
       })
       .catch(err => console.error("Error loading logo:", err));
 
+    // Fetch font with a cache-busting query parameter
+    const fontUrl = `https://unpkg.com/@fontsource/roboto@5.0.13/files/roboto-latin-ext-400-normal.ttf?v=${new Date().getTime()}`;
+    fetch(fontUrl)
+      .then(res => {
+        if (!res.ok) throw new Error(`Failed to fetch font: ${res.statusText}`);
+        return res.blob();
+      })
+      .then(blob => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const fontBase64 = (reader.result as string).split(',')[1];
+          setFont(fontBase64);
+        };
+        reader.readAsDataURL(blob);
+      })
+      .catch(err => {
+        console.error("Error loading font:", err);
+        alert("Nepodařilo se načíst font pro diakritiku. PDF nebude vygenerováno správně.");
+      });
+
   }, [project]);
 
   if (!project) return null;
@@ -75,12 +94,16 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
   };
 
   const generatePdf = async () => {
+    if (!font) {
+      alert("Font pro diakritiku se stále načítá nebo se ho nepodařilo načíst. Zkuste to prosím za chvíli znovu.");
+      return;
+    }
     setIsGenerating(true);
+
     try {
       const doc = new jsPDF();
 
-      // Add the locally embedded font to the PDF
-      doc.addFileToVFS('Roboto-Regular.ttf', robotoFontData);
+      doc.addFileToVFS('Roboto-Regular.ttf', font);
       doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
       doc.setFont('Roboto', 'normal');
 
@@ -230,8 +253,8 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
           <button onClick={onClose} className="bg-zinc-600 hover:bg-zinc-700 text-white font-bold py-2 px-4 rounded">
             Zrušit
           </button>
-          <button onClick={generatePdf} className="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded" disabled={isGenerating}>
-            {isGenerating ? 'Generuji...' : 'Vygenerovat PDF'}
+          <button onClick={generatePdf} className="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded" disabled={!font || isGenerating}>
+            {isGenerating ? 'Generuji...' : (font ? 'Vygenerovat PDF' : 'Načítání fontu...')}
           </button>
         </div>
       </div>
