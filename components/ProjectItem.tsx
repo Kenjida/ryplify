@@ -109,39 +109,39 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
         </div>
         {!isReadOnly && (
           <div className="flex flex-col items-end gap-2">
-             <div className="flex gap-2">
-                {project.isActive && (
+            <div className="flex flex-wrap justify-end gap-2">
+              {project.isActive && (
                 <button
-                    onClick={() => onToggleTimer(project.id, isRunning)}
-                    className={`px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-24 ${isRunning ? 'bg-zinc-600 hover:bg-zinc-700' : 'bg-red-600 hover:bg-red-700'}`}>
-                    {isRunning ? 'Stop' : 'Start'}
+                  onClick={() => onToggleTimer(project.id, isRunning)}
+                  className={`px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-24 ${isRunning ? 'bg-zinc-600 hover:bg-zinc-700' : 'bg-red-600 hover:bg-red-700'}`}>
+                  {isRunning ? 'Stop' : 'Start'}
                 </button>
-                )}
-                {onEditProject && (
+              )}
+              {!project.isActive && (
+                <>
+                  <button
+                    onClick={generateInvoice}
+                    className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-rose-600 hover:bg-rose-700">
+                    Stáhnout PDF
+                  </button>
+                  {onDeleteProject && (
                     <button
-                        onClick={() => onEditProject(project.id)}
-                        className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-24 bg-blue-600 hover:bg-blue-700">
-                        Upravit
+                      onClick={() => onDeleteProject(project.id)}
+                      className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-gray-700 hover:bg-gray-600">
+                      Smazat
                     </button>
-                )}
+                  )}
+                </>
+              )}
+              {onEditProject && (
+                  <button
+                      onClick={() => onEditProject(project.id)}
+                      className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-24 bg-blue-600 hover:bg-blue-700">
+                      Upravit
+                  </button>
+              )}
             </div>
 
-            {!project.isActive && (
-              <div className="flex flex-col md:flex-row gap-2">
-                <button
-                  onClick={generateInvoice}
-                  className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-rose-600 hover:bg-rose-700">
-                  Stáhnout PDF
-                </button>
-                {onDeleteProject && (
-                  <button
-                    onClick={() => onDeleteProject(project.id)}
-                    className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-gray-700 hover:bg-gray-600">
-                    Smazat
-                  </button>
-                )}
-              </div>
-            )}
             <div className="flex flex-col md:flex-row items-end md:items-center mt-2 gap-4">
               <div className="flex items-center">
                 <span className="text-sm text-gray-400 mr-2">{project.isActive ? 'Aktivní' : 'Neaktivní'}</span>
