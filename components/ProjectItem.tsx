@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import type { Project } from './types';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 interface ProjectItemProps {
   project: Project;
@@ -12,6 +10,7 @@ interface ProjectItemProps {
   onDeleteProject?: (id: string) => void;
   onToggleFree?: (id: string) => void;
   onEditProject?: (id: string) => void;
+  onOpenInvoiceSettings?: (project: Project) => void;
   isReadOnly?: boolean;
   liveNote?: string;
   handleNoteChange?: (id: string, note: string) => void;
@@ -26,7 +25,7 @@ const formatTime = (totalSeconds: number): string => {
     .join(":");
 };
 
-const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggleTimer, onToggleActive, onDeleteProject, onToggleFree, onEditProject, isReadOnly, liveNote, handleNoteChange }) => {
+const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggleTimer, onToggleActive, onDeleteProject, onToggleFree, onEditProject, onOpenInvoiceSettings, isReadOnly, liveNote, handleNoteChange }) => {
   const [displaySeconds, setDisplaySeconds] = useState(project.totalSeconds);
 
   useEffect(() => {
@@ -43,54 +42,6 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
 
   const isRunning = project.startTime !== null;
   const cost = (displaySeconds / 3600) * hourlyRate;
-
-  const generateInvoice = () => {
-    try {
-      const doc = new jsPDF();
-
-      // Title
-      doc.setFontSize(22);
-      doc.text(`Faktura za projekt: ${project.name}`, 14, 22);
-
-      // Sub-header
-      doc.setFontSize(12);
-      doc.text(`Datum generovani: ${new Date().toLocaleDateString('cs-CZ')}`, 14, 32);
-
-      // Summary
-      doc.setFontSize(14);
-      doc.text("Souhrn", 14, 50);
-      doc.line(14, 52, 196, 52); // horizontal line
-      autoTable(doc, {
-          startY: 55,
-          head: [['Celkovy cas', 'Hodinova sazba', 'Celkova cena']],
-          body: [[formatTime(project.totalSeconds), `${hourlyRate} Kc/hod`, `${cost.toFixed(2)} Kc`]],
-          theme: 'striped',
-          headStyles: { fillColor: [239, 68, 68] }, // Red color for header
-      });
-
-      // Time Entries
-      const tableBody = project.timeEntries.map(entry => {
-          const startDate = new Date(entry.start).toLocaleString('cs-CZ');
-          const endDate = new Date(entry.end).toLocaleString('cs-CZ');
-          const duration = formatTime((entry.end - entry.start) / 1000);
-          return [startDate, endDate, duration, entry.note];
-      });
-
-      autoTable(doc, {
-          startY: (doc as any).lastAutoTable.finalY + 15,
-          head: [['Zacatek', 'Konec', 'Trvani', 'Poznámka']],
-          body: tableBody,
-          theme: 'grid',
-          headStyles: { fillColor: [239, 68, 68] },
-      });
-
-      doc.save(`faktura-${project.name.replace(/\s/g, '_')}.pdf`);
-    } catch (error) {
-      console.error("Chyba pri generovani PDF:", error);
-      alert("Nepodarilo se vygenerovat PDF. Zkontrolujte konzoli pro vice detailu.");
-    }
-  };
-
 
   return (
     <div className={`bg-zinc-800 p-4 rounded-lg shadow-md transition-all duration-300 ${!project.isActive ? 'ring-2 ring-green-500' : isRunning ? 'ring-2 ring-red-500' : ''}`}>
@@ -117,10 +68,10 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
                   {isRunning ? 'Stop' : 'Start'}
                 </button>
               )}
-              {!project.isActive && (
+              {!project.isActive && onOpenInvoiceSettings && (
                 <>
                   <button
-                    onClick={generateInvoice}
+                    onClick={() => onOpenInvoiceSettings(project)}
                     className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-rose-600 hover:bg-rose-700">
                     Stáhnout PDF
                   </button>

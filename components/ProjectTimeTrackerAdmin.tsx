@@ -3,7 +3,8 @@ import AddProjectForm from './AddProjectForm';
 import ProjectList from './ProjectList';
 import Settings from './Settings';
 import Dashboard from './Dashboard';
-import EditProjectModal from './EditProjectModal'; // Import the modal
+import EditProjectModal from './EditProjectModal';
+import InvoiceSettingsModal from './InvoiceSettingsModal'; // Import the invoice modal
 import { useProjectTracker } from '../hooks/useProjectTracker';
 import type { Project } from './types';
 
@@ -21,10 +22,12 @@ const ProjectTimeTrackerAdmin: React.FC = () => {
     onToggleFree,
     handleNoteChange,
     deleteProject,
-    updateProject // Import updateProject from the hook
+    updateProject
   } = useProjectTracker();
 
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [projectForInvoice, setProjectForInvoice] = useState<Project | null>(null);
 
   const handleEditProject = (id: string) => {
     const projectToEdit = projects.find(p => p.id === id);
@@ -40,11 +43,21 @@ const ProjectTimeTrackerAdmin: React.FC = () => {
   const handleSaveProject = async (updatedProject: Project) => {
     try {
       await updateProject(updatedProject.id, updatedProject);
-      setEditingProject(null); // Close modal on successful save
+      setEditingProject(null);
     } catch (error) {
       console.error("Failed to save project:", error);
       alert(`Nepodařilo se uložit projekt: ${error instanceof Error ? error.message : 'Neznámá chyba'}`);
     }
+  };
+
+  const handleOpenInvoiceSettings = (project: Project) => {
+    setProjectForInvoice(project);
+    setIsInvoiceModalOpen(true);
+  };
+
+  const handleCloseInvoiceModal = () => {
+    setIsInvoiceModalOpen(false);
+    setProjectForInvoice(null);
   };
 
   return (
@@ -62,7 +75,8 @@ const ProjectTimeTrackerAdmin: React.FC = () => {
                 onToggleActive={onToggleActive}
                 onDeleteProject={deleteProject}
                 onToggleFree={onToggleFree}
-                onEditProject={handleEditProject} // Pass the handler
+                onEditProject={handleEditProject}
+                onOpenInvoiceSettings={handleOpenInvoiceSettings} // Pass the handler
                 liveNotes={liveNotes}
                 handleNoteChange={handleNoteChange}
             />
@@ -84,6 +98,14 @@ const ProjectTimeTrackerAdmin: React.FC = () => {
           project={editingProject}
           onClose={handleCloseModal}
           onSave={handleSaveProject}
+        />
+      )}
+
+      {isInvoiceModalOpen && (
+        <InvoiceSettingsModal
+          project={projectForInvoice}
+          onClose={handleCloseInvoiceModal}
+          hourlyRate={hourlyRate}
         />
       )}
     </>
