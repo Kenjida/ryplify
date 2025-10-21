@@ -11,6 +11,7 @@ interface ProjectItemProps {
   onToggleActive: (id: string) => void;
   onDeleteProject?: (id: string) => void;
   onToggleFree?: (id: string) => void;
+  onEditProject?: (id: string) => void;
   isReadOnly?: boolean;
   liveNote?: string;
   handleNoteChange?: (id: string, note: string) => void;
@@ -25,7 +26,7 @@ const formatTime = (totalSeconds: number): string => {
     .join(":");
 };
 
-const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggleTimer, onToggleActive, onDeleteProject, onToggleFree, isReadOnly, liveNote, handleNoteChange }) => {
+const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggleTimer, onToggleActive, onDeleteProject, onToggleFree, onEditProject, isReadOnly, liveNote, handleNoteChange }) => {
   const [displaySeconds, setDisplaySeconds] = useState(project.totalSeconds);
 
   useEffect(() => {
@@ -108,13 +109,24 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
         </div>
         {!isReadOnly && (
           <div className="flex flex-col items-end gap-2">
-            {project.isActive ? (
-              <button
-                onClick={() => onToggleTimer(project.id, isRunning)}
-                className={`px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-24 ${isRunning ? 'bg-zinc-600 hover:bg-zinc-700' : 'bg-red-600 hover:bg-red-700'}`}>
-                {isRunning ? 'Stop' : 'Start'}
-              </button>
-            ) : (
+             <div className="flex gap-2">
+                {project.isActive && (
+                <button
+                    onClick={() => onToggleTimer(project.id, isRunning)}
+                    className={`px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-24 ${isRunning ? 'bg-zinc-600 hover:bg-zinc-700' : 'bg-red-600 hover:bg-red-700'}`}>
+                    {isRunning ? 'Stop' : 'Start'}
+                </button>
+                )}
+                {onEditProject && (
+                    <button
+                        onClick={() => onEditProject(project.id)}
+                        className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-24 bg-blue-600 hover:bg-blue-700">
+                        Upravit
+                    </button>
+                )}
+            </div>
+
+            {!project.isActive && (
               <div className="flex flex-col md:flex-row gap-2">
                 <button
                   onClick={generateInvoice}

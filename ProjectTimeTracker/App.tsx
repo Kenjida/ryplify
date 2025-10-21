@@ -1,66 +1,51 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import AddProjectForm from './components/AddProjectForm';
 import ProjectList from './components/ProjectList';
 import Settings from './components/Settings';
 import Dashboard from './components/Dashboard';
-import { useLocalStorage } from './hooks/useLocalStorage';
-import type { Project, TimeEntry } from './types';
+import EditProjectModal from './components/EditProjectModal';
+import { useProjectTracker } from '../hooks/useProjectTracker'; // Corrected path
+import type { Project } from './types';
 
 const App: React.FC = () => {
-  const [projects, setProjects] = useLocalStorage<Project[]>('projects', []);
-  const [hourlyRate, setHourlyRate] = useLocalStorage<number>('hourlyRate', 500);
-  const [showInactive, setShowInactive] = useState<boolean>(false);
+  const {
+    projects,
+    hourlyRate,
+    setHourlyRate,
+    showInactive,
+    setShowInactive,
+    addProject,
+    onToggleTimer,
+    onToggleActive,
+    onToggleFree,
+    handleNoteChange,
+    deleteProject,
+    updateProject,
+    liveNotes
+  } = useProjectTracker();
 
-  const addProject = (name: string) => {
-    const newProject: Project = {
-      id: new Date().toISOString(),
-      name,
-      totalSeconds: 0,
-      isActive: true,
-      startTime: null,
-      timeEntries: [],
-    };
-    setProjects([...projects, newProject]);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+
+  const handleEditProject = (id: string) => {
+    const projectToEdit = projects.find(p => p.id === id);
+    if (projectToEdit) {
+      setEditingProject(projectToEdit);
+    }
   };
 
-  const onToggleTimer = useCallback((id: string, isRunning: boolean) => {
-    setProjects(prevProjects =>
-      prevProjects.map(p => {
-        if (p.id === id) {
-          if (isRunning) {
-            // Stop timer
-            const now = Date.now();
-            const startTime = p.startTime ?? now;
-            const elapsedSeconds = (now - startTime) / 1000;
-            const newTimeEntry: TimeEntry = { start: startTime, end: now };
-            return {
-              ...p,
-              startTime: null,
-              totalSeconds: p.totalSeconds + elapsedSeconds,
-              timeEntries: [...p.timeEntries, newTimeEntry],
-            };
-          } else {
-            // Start timer
-            return { ...p, startTime: Date.now() };
-          }
-        }
-        return p;
-      })
-    );
-  }, [setProjects]);
-
-  const onToggleActive = useCallback((id: string) => {
-    setProjects(prevProjects => 
-      prevProjects.map(p => 
-        p.id === id ? { ...p, isActive: !p.isActive } : p
-      )
-    );
-  }, [setProjects]);
-
-  const deleteProject = (id: string) => {
-    setProjects(projects.filter(p => p.id !== id));
+  const handleCloseModal = () => {
+    setEditingProject(null);
   };
 
+  const handleSaveProject = async (updatedProject: Project) => {
+    try {
+      await updateProject(updatedProject.id, updatedProject);
+      setEditingProject(null); // Close modal on successful save
+    } catch (error) {
+      console.error("Failed to save project:", error);
+      // Optionally, show an error message to the user
+    }
+  };
 
   return (
     <div className="min-h-screen bg-zinc-900 text-white p-4 sm:p-6 lg:p-8">
@@ -87,9 +72,13 @@ const App: React.FC = () => {
                   projects={projects}
                   hourlyRate={hourlyRate}
                   showInactive={showInactive}
-                  onToggleTimer={onToggleTimer}
+                  onToggleTimer={(id) => onToggleTimer(id)}
                   onToggleActive={onToggleActive}
+                  onToggleFree={onToggleFree}
                   onDeleteProject={deleteProject}
+                  onEditProject={handleEditProject}
+                  liveNotes={liveNotes}
+                  handleNoteChange={handleNoteChange}
                />
             </div>
           </div>
@@ -103,6 +92,14 @@ const App: React.FC = () => {
             />
           </div>
         </main>
+
+        {editingProject && (
+          <EditProjectModal
+            project={editingProject}
+            onClose={handleCloseModal}
+            onSave={handleSaveProject}
+          />
+        )}
 
         <footer className="text-center mt-12 text-gray-500">
             <p>Made by Ryplify</p>

@@ -1,89 +1,105 @@
-import { useState, useCallback } from 'react';
-import { useLocalStorage } from './useLocalStorage';
-import type { Project, TimeEntry } from '../components/types';
+import { useState, useCallback, useEffect } from 'react';
+import type { Project } from '../components/types';
+import { getProjects, createProject, deleteProject as apiDeleteProject, toggleProjectTimer as apiToggleTimer, updateProject as apiUpdateProject } from '../utils/api';
 
 export const useProjectTracker = () => {
-  const [projects, setProjects] = useLocalStorage<Project[]>('projects', []);
-  const [hourlyRate, setHourlyRate] = useLocalStorage<number>('hourlyRate', 500);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [hourlyRate, setHourlyRate] = useState<number>(500); // This can remain local or be moved to a user settings endpoint later
   const [showInactive, setShowInactive] = useState<boolean>(false);
-  // Use localStorage for liveNotes to ensure cross-tab sync
-  const [liveNotes, setLiveNotes] = useLocalStorage<{[key: string]: string}>('live_notes', {});
+  const [liveNotes, setLiveNotes] = useState<{[key: string]: string}>({});
 
-  const addProject = useCallback((name: string, isFree: boolean) => {
-    const newProject: Project = {
-      id: new Date().toISOString(),
-      name,
-      totalSeconds: 0,
-      isActive: true,
-      isFree: isFree,
-      startTime: null,
-      timeEntries: [],
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const serverProjects = await getProjects();
+        setProjects(serverProjects);
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+        // Handle error, e.g., show a notification to the user
+      }
     };
-    setProjects(prev => [...prev, newProject]);
-  }, [setProjects]);
+    fetchProjects();
+  }, []);
+
+  const addProject = useCallback(async (name: string, isFree: boolean) => {
+    try {
+      const newProject = await createProject({ name, isFree });
+      setProjects(prev => [...prev, newProject]);
+    } catch (error) {
+      console.error("Failed to create project:", error);
+    }
+  }, []);
 
   const handleNoteChange = useCallback((id: string, note: string) => {
     setLiveNotes(prev => ({ ...prev, [id]: note }));
-  }, [setLiveNotes]);
+  }, []);
 
-  const onToggleTimer = useCallback((id: string, isRunning: boolean) => {
-    if (isRunning) {
-      // STOP TIMER
-      const project = projects.find(p => p.id === id);
-      if (!project || project.startTime === null) return;
-
-      const now = Date.now();
-      const startTime = project.startTime;
-      const elapsedSeconds = (now - startTime) / 1000;
-      const newTimeEntry: TimeEntry = {
-        start: startTime,
-        end: now,
-        note: liveNotes[id] || ''
-      };
-
+  const onToggleTimer = useCallback(async (id: string) => {
+    try {
+      const note = liveNotes[id] || '';
+      const updatedProject = await apiToggleTimer(id, note);
       setProjects(prevProjects => prevProjects.map(p =>
-        p.id === id
-          ? { ...p, startTime: null, totalSeconds: p.totalSeconds + elapsedSeconds, timeEntries: [...p.timeEntries, newTimeEntry] }
-          : p
+        p.id === id ? updatedProject : p
       ));
-
-      setLiveNotes(prev => {
-        const newNotes = { ...prev };
-        delete newNotes[id];
-        return newNotes;
-      });
-
-    } else {
-      // START TIMER
-      setProjects(prevProjects => prevProjects.map(p =>
-        p.id === id ? { ...p, startTime: Date.now() } : p
-      ));
-      handleNoteChange(id, '');
+      if (updatedProject.startTime === null) { // Timer was stopped
+        setLiveNotes(prev => {
+          const newNotes = { ...prev };
+          delete newNotes[id];
+          return newNotes;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to toggle timer:", error);
     }
-  }, [projects, liveNotes, setProjects, setLiveNotes, handleNoteChange]);
+  }, [liveNotes]);
 
-  const onToggleActive = useCallback((id: string) => {
-    setProjects(prevProjects => 
-      prevProjects.map(p => 
-        p.id === id ? { ...p, isActive: !p.isActive } : p
-      )
-    );
-  }, [setProjects]);
+  const onToggleActive = useCallback(async (id: string) => {
+    const project = projects.find(p => p.id === id);
+    if (!project) return;
+    try {
+      const updatedProject = await apiUpdateProject(id, { ...project, isActive: !project.isActive });
+      setProjects(prev => prev.map(p => p.id === id ? updatedProject : p));
+    } catch (error) {
+      console.error("Failed to toggle active state:", error);
+    }
+  }, [projects]);
 
-  const onToggleFree = useCallback((id: string) => {
-    setProjects(prevProjects => 
-      prevProjects.map(p => 
-        p.id === id ? { ...p, isFree: !p.isFree } : p
-      )
-    );
-  }, [setProjects]);
+  const onToggleFree = useCallback(async (id: string) => {
+    const project = projects.find(p => p.id === id);
+    if (!project) return;
+    try {
+      const updatedProject = await apiUpdateProject(id, { ...project, isFree: !project.isFree });
+      setProjects(prev => prev.map(p => p.id === id ? updatedProject : p));
+    } catch (error) {
+      console.error("Failed to toggle free state:", error);
+    }
+  }, [projects]);
 
-  const deleteProject = (id: string) => {
-    setProjects(projects.filter(p => p.id !== id));
-  };
+  const deleteProject = useCallback(async (id: string) => {
+    try {
+      await apiDeleteProject(id);
+      setProjects(prev => prev.filter(p => p.id !== id));
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+    }
+  }, []);
+
+  const updateProject = useCallback(async (id: string, projectData: Project) => {
+    try {
+      const updatedProject = await apiUpdateProject(id, projectData);
+      setProjects(prev => prev.map(p => (p.id === id ? updatedProject : p)));
+      return updatedProject;
+    } catch (error) {
+      console.error("Failed to update project:", error);
+      // Optionally re-throw or handle the error
+      throw error;
+    }
+  }, []);
+
 
   return {
     projects,
+    setProjects,
     hourlyRate,
     setHourlyRate,
     showInactive,
@@ -94,6 +110,7 @@ export const useProjectTracker = () => {
     onToggleActive,
     onToggleFree,
     handleNoteChange,
-    deleteProject
+    deleteProject,
+    updateProject
   };
 };
