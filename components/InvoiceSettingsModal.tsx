@@ -3,8 +3,6 @@ import type { Project } from './types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
-// Import the font file directly from the utility file
-import { robotoNormal } from '../utils/roboto-normal';
 
 interface InvoiceSettingsModalProps {
   project: Project | null;
@@ -47,6 +45,8 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
     variableSymbol: new Date().getTime().toString().slice(-8),
   });
   const [logo, setLogo] = useState<string | null>(null);
+  const [font, setFont] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -62,6 +62,27 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
       })
       .catch(err => console.error("Error loading logo:", err));
 
+    // Fetch font that supports Czech diacritics and convert it to base64
+    fetch('https://cdn.jsdelivr.net/npm/@fontsource/roboto/files/roboto-latin-ext-400-normal.ttf')
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch font: ${res.statusText}`);
+        }
+        return res.blob();
+      })
+      .then(blob => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const fontBase64 = (reader.result as string).split(',')[1];
+          setFont(fontBase64);
+        };
+        reader.readAsDataURL(blob);
+      })
+      .catch(err => {
+        console.error("Error loading font:", err);
+        alert("Nepodařilo se načíst font pro diakritiku. PDF nebude vygenerováno správně.");
+      });
+
   }, [project]);
 
   if (!project) return null;
@@ -74,96 +95,96 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
   };
 
   const generatePdf = async () => {
-    const doc = new jsPDF();
-
-    // 1. Add the locally imported font to the PDF
-    doc.addFileToVFS('Roboto-Regular.ttf', robotoNormal);
-    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-    doc.setFont('Roboto', 'normal');
-
-    // 2. Logo - Centered
-    const logoWidth = 60;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const logoX = (pageWidth - logoWidth) / 2;
-    if (logo) {
-      doc.addImage(logo, 'PNG', logoX, 10, logoWidth, 20); 
+    if (!font) {
+      alert("Font pro diakritiku se stále načítá nebo se ho nepodařilo načíst. Zkuste to prosím za chvíli znovu.");
+      return;
     }
-
-    // 3. Title
-    doc.setFontSize(22);
-    doc.text('Faktura', 14, 45);
-    doc.setFontSize(12);
-    doc.text(invoiceData.invoiceNumber, 14, 52);
-
-    // 4. Supplier and Customer Details
-    doc.setFontSize(10);
-    doc.text('Dodavatel (Vy):', 14, 65);
-    doc.text(invoiceData.supplierName, 14, 70);
-    doc.text(invoiceData.supplierAddress, 14, 75);
-    doc.text(`IČ: ${invoiceData.supplierIC}`, 14, 80);
-    doc.setFontSize(8);
-    doc.text(invoiceData.supplierRegister, 14, 85);
-    doc.setFontSize(10);
-
-    doc.text('Odběratel (Zákazník):', 110, 65);
-    doc.text(invoiceData.customerName, 110, 70);
-    doc.text(invoiceData.customerAddress, 110, 75);
-    doc.text(`IČ: ${invoiceData.customerIC}`, 110, 80);
-
-    // 5. Invoice Dates
-    doc.text(`Datum vystavení: ${new Date(invoiceData.dateOfIssue).toLocaleDateString('cs-CZ')}`, 14, 100);
-    
-    // 6. Time Entries Table
-    const tableBody = project.timeEntries.map(entry => {
-        const startDate = new Date(entry.start).toLocaleString('cs-CZ');
-        const endDate = new Date(entry.end).toLocaleString('cs-CZ');
-        const duration = formatTime((entry.end - entry.start) / 1000);
-        return [startDate, endDate, duration, entry.note];
-    });
-    autoTable(doc, {
-        startY: 110,
-        head: [['Začátek', 'Konec', 'Trvání', 'Poznámka']],
-        body: tableBody,
-        theme: 'grid',
-        styles: { font: 'Roboto', fontStyle: 'normal' },
-        headStyles: { fillColor: [239, 68, 68], font: 'Roboto', fontStyle: 'normal' },
-    });
-
-    // 7. Summary Table
-    autoTable(doc, {
-        startY: (doc as any).lastAutoTable.finalY + 10,
-        head: [['Celkový čas', 'Hodinová sazba', 'Celková cena']],
-        body: [[formatTime(project.totalSeconds), `${hourlyRate.toFixed(2)} Kč/hod`, `${totalCost.toFixed(2)} Kč`]],
-        theme: 'striped',
-        styles: { font: 'Roboto', fontStyle: 'normal' },
-        headStyles: { fillColor: [239, 68, 68], font: 'Roboto', fontStyle: 'normal' },
-    });
-
-    // 8. Payment Information and QR Code
-    const finalY = (doc as any).lastAutoTable.finalY;
-    doc.setFontSize(12);
-    doc.text('Platební údaje:', 14, finalY + 20);
-    doc.setFontSize(10);
-    doc.text(`Číslo účtu: ${invoiceData.bankAccount}`, 14, finalY + 26);
-    doc.text(`Variabilní symbol: ${invoiceData.variableSymbol}`, 14, finalY + 31);
-    doc.text(`Částka: ${totalCost.toFixed(2)} Kč`, 14, finalY + 36);
+    setIsGenerating(true);
 
     try {
-        const iban = 'CZ6506000000000193788710';
-        const qrString = `SPD*1.0*ACC:${iban}*AM:${totalCost.toFixed(2)}*CC:CZK*MSG:Platba faktury ${invoiceData.invoiceNumber}*X-VS:${invoiceData.variableSymbol}`;
-        const qrCodeImage = await QRCode.toDataURL(qrString, { errorCorrectionLevel: 'M' });
-        doc.addImage(qrCodeImage, 'PNG', 150, finalY + 15, 45, 45);
-    } catch (err) {
-        console.error('Failed to generate QR code', err);
+      const doc = new jsPDF();
+
+      doc.addFileToVFS('Roboto-Regular.ttf', font);
+      doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+      doc.setFont('Roboto', 'normal');
+
+      const logoWidth = 60;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const logoX = (pageWidth - logoWidth) / 2;
+      if (logo) {
+        doc.addImage(logo, 'PNG', logoX, 10, logoWidth, 20); 
+      }
+
+      doc.setFontSize(22);
+      doc.text('Faktura', 14, 45);
+      doc.setFontSize(12);
+      doc.text(invoiceData.invoiceNumber, 14, 52);
+
+      doc.setFontSize(10);
+      doc.text('Dodavatel (Vy):', 14, 65);
+      doc.text(invoiceData.supplierName, 14, 70);
+      doc.text(invoiceData.supplierAddress, 14, 75);
+      doc.text(`IČ: ${invoiceData.supplierIC}`, 14, 80);
+      doc.setFontSize(8);
+      doc.text(invoiceData.supplierRegister, 14, 85);
+      doc.setFontSize(10);
+
+      doc.text('Odběratel (Zákazník):', 110, 65);
+      doc.text(invoiceData.customerName, 110, 70);
+      doc.text(invoiceData.customerAddress, 110, 75);
+      doc.text(`IČ: ${invoiceData.customerIC}`, 110, 80);
+
+      doc.text(`Datum vystavení: ${new Date(invoiceData.dateOfIssue).toLocaleDateString('cs-CZ')}`, 14, 100);
+      
+      const tableBody = project.timeEntries.map(entry => {
+          const startDate = new Date(entry.start).toLocaleString('cs-CZ');
+          const endDate = new Date(entry.end).toLocaleString('cs-CZ');
+          const duration = formatTime((entry.end - entry.start) / 1000);
+          return [startDate, endDate, duration, entry.note];
+      });
+      autoTable(doc, {
+          startY: 110,
+          head: [['Začátek', 'Konec', 'Trvání', 'Poznámka']],
+          body: tableBody,
+          theme: 'grid',
+          styles: { font: 'Roboto', fontStyle: 'normal' },
+          headStyles: { fillColor: [239, 68, 68], font: 'Roboto', fontStyle: 'normal' },
+      });
+
+      autoTable(doc, {
+          startY: (doc as any).lastAutoTable.finalY + 10,
+          head: [['Celkový čas', 'Hodinová sazba', 'Celková cena']],
+          body: [[formatTime(project.totalSeconds), `${hourlyRate.toFixed(2)} Kč/hod`, `${totalCost.toFixed(2)} Kč`]],
+          theme: 'striped',
+          styles: { font: 'Roboto', fontStyle: 'normal' },
+          headStyles: { fillColor: [239, 68, 68], font: 'Roboto', fontStyle: 'normal' },
+      });
+
+      const finalY = (doc as any).lastAutoTable.finalY;
+      doc.setFontSize(12);
+      doc.text('Platební údaje:', 14, finalY + 20);
+      doc.setFontSize(10);
+      doc.text(`Číslo účtu: ${invoiceData.bankAccount}`, 14, finalY + 26);
+      doc.text(`Variabilní symbol: ${invoiceData.variableSymbol}`, 14, finalY + 31);
+      doc.text(`Částka: ${totalCost.toFixed(2)} Kč`, 14, finalY + 36);
+
+      const iban = 'CZ6506000000000193788710';
+      const qrString = `SPD*1.0*ACC:${iban}*AM:${totalCost.toFixed(2)}*CC:CZK*MSG:Platba faktury ${invoiceData.invoiceNumber}*X-VS:${invoiceData.variableSymbol}`;
+      const qrCodeImage = await QRCode.toDataURL(qrString, { errorCorrectionLevel: 'M' });
+      doc.addImage(qrCodeImage, 'PNG', 150, finalY + 15, 45, 45);
+
+      const noteY = Math.max(finalY + 65, 280);
+      doc.setFontSize(10);
+      doc.text('Nejsem plátce DPH.', 14, noteY);
+
+      doc.save(`faktura-${invoiceData.invoiceNumber}-${project.name.replace(/\s/g, '_')}.pdf`);
+    } catch (error) {
+      console.error("An error occurred during PDF generation:", error);
+      alert("Během generování PDF se vyskytla chyba. Zkontrolujte konzoli pro více informací.");
+    } finally {
+      setIsGenerating(false);
+      onClose();
     }
-
-    // 9. "Not a VAT payer" note
-    const noteY = Math.max(finalY + 45, 280);
-    doc.setFontSize(10);
-    doc.text('Nejsem plátce DPH.', 14, noteY);
-
-    doc.save(`faktura-${invoiceData.invoiceNumber}-${project.name.replace(/\s/g, '_')}.pdf`);
-    onClose();
   };
 
   return (
@@ -172,7 +193,7 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
         <h2 className="text-2xl font-bold mb-6">Nastavení faktury pro: {project.name}</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Supplier Column */}
+            {/* Supplier and Customer columns */}
             <div className="space-y-4 p-4 bg-zinc-700 rounded-lg">
                 <h3 className="text-lg font-semibold border-b border-zinc-600 pb-2">Dodavatel (Vy)</h3>
                 <div>
@@ -192,8 +213,6 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
                     <input type="text" name="supplierRegister" value={invoiceData.supplierRegister} onChange={handleInputChange} className="w-full bg-zinc-600 p-2 rounded mt-1"/>
                 </div>
             </div>
-
-            {/* Customer Column */}
             <div className="space-y-4 p-4 bg-zinc-700 rounded-lg">
                 <h3 className="text-lg font-semibold border-b border-zinc-600 pb-2">Odběratel (Zákazník)</h3>
                 <div>
@@ -235,8 +254,8 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
           <button onClick={onClose} className="bg-zinc-600 hover:bg-zinc-700 text-white font-bold py-2 px-4 rounded">
             Zrušit
           </button>
-          <button onClick={generatePdf} className="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded">
-            Vygenerovat PDF
+          <button onClick={generatePdf} className="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded" disabled={!font || isGenerating}>
+            {isGenerating ? 'Generuji...' : (font ? 'Vygenerovat PDF' : 'Načítání fontu...')}
           </button>
         </div>
       </div>
