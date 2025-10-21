@@ -126,7 +126,11 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
                   </button>
                   {onDeleteProject && (
                     <button
-                      onClick={() => onDeleteProject(project.id)}
+                      onClick={() => {
+                        if (window.confirm('Opravdu si přejete smazat tento projekt?')) {
+                          onDeleteProject(project.id);
+                        }
+                      }}
                       className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-gray-700 hover:bg-gray-600">
                       Smazat
                     </button>
