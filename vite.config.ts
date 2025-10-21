@@ -51,6 +51,23 @@ export default defineConfig(({ mode }) => {
           },
           workbox: {
             globPatterns: ['**/*.{js,css,html,ico,png,svg,json,vue,ts}'],
+            runtimeCaching: [
+              {
+                urlPattern: ({ url }) => url.pathname.startsWith('/admin') || url.pathname.startsWith('/projekt'),
+                handler: 'NetworkFirst' as const,
+                options: {
+                  cacheName: 'admin-projekt-cache',
+                  networkTimeoutSeconds: 10,
+                  expiration: {
+                    maxEntries: 10,
+                    maxAgeSeconds: 60 * 60 * 24 * 1 // 1 day
+                  },
+                  cacheableResponse: {
+                    statuses: [0, 200]
+                  }
+                }
+              }
+            ],
             navigateFallbackDenylist: [/^\/admin/, /^\/projekt/],
           },
           devOptions: {
