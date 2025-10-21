@@ -55,7 +55,7 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
     }
     
     // Fetch and convert logo to base64
-    fetch('/vibecoding_ryplify.png') // Make sure this path is correct
+    fetch('/logo.png') // CORRECTED: Use logo.png
       .then(res => res.blob())
       .then(blob => {
         const reader = new FileReader();
@@ -80,9 +80,15 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
   const generatePdf = async () => {
     const doc = new jsPDF();
 
-    // 1. Logo
+    // Set font that supports diacritics
+    doc.setFont('Helvetica');
+
+    // 1. Logo - Centered
+    const logoWidth = 60;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const logoX = (pageWidth - logoWidth) / 2;
     if (logo) {
-      doc.addImage(logo, 'PNG', 14, 10, 60, 20); // Adjust position and size as needed
+      doc.addImage(logo, 'PNG', logoX, 10, logoWidth, 20); 
     }
 
     // 2. Title
@@ -119,7 +125,8 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
         head: [['Začátek', 'Konec', 'Trvání', 'Poznámka']],
         body: tableBody,
         theme: 'grid',
-        headStyles: { fillColor: [239, 68, 68] },
+        headStyles: { fillColor: [239, 68, 68], font: 'Helvetica' },
+        styles: { font: 'Helvetica' },
     });
 
     // 6. Summary Table
@@ -128,7 +135,8 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
         head: [['Celkový čas', 'Hodinová sazba', 'Celková cena']],
         body: [[formatTime(project.totalSeconds), `${hourlyRate.toFixed(2)} Kč/hod`, `${totalCost.toFixed(2)} Kč`]],
         theme: 'striped',
-        headStyles: { fillColor: [239, 68, 68] },
+        headStyles: { fillColor: [239, 68, 68], font: 'Helvetica' },
+        styles: { font: 'Helvetica' },
     });
 
     // 7. Payment Information and QR Code
@@ -142,9 +150,6 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
 
     // QR Code Generation
     try {
-        // IMPORTANT: For this to work, you need the full IBAN. 
-        // The format is CZ + 2 check digits + bank code (0600) + account number (padded to 16 digits).
-        // Example: CZ6506000000000193788710 - PLEASE VERIFY YOUR IBAN
         const iban = 'CZ6506000000000193788710'; // REPLACE WITH YOUR CORRECT IBAN
         const qrString = `SPD*1.0*ACC:${iban}*AM:${totalCost.toFixed(2)}*CC:CZK*MSG:Platba faktury ${invoiceData.invoiceNumber}*X-VS:${invoiceData.variableSymbol}`;
         const qrCodeImage = await QRCode.toDataURL(qrString, { errorCorrectionLevel: 'M' });
@@ -152,6 +157,11 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
     } catch (err) {
         console.error('Failed to generate QR code', err);
     }
+
+    // Add "Not a VAT payer" note
+    const noteY = Math.max(finalY + 45, 280); // Position it at the bottom
+    doc.setFontSize(10);
+    doc.text('Nejsem plátce DPH.', 14, noteY);
 
     doc.save(`faktura-${invoiceData.invoiceNumber}-${project.name.replace(/\s/g, '_')}.pdf`);
     onClose();
