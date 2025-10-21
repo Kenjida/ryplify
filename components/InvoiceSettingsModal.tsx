@@ -62,14 +62,21 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
       })
       .catch(err => console.error("Error loading logo:", err));
 
-    // Fetch font that supports Czech diacritics and convert it to base64
-    fetch('https://cdn.jsdelivr.net/npm/@fontsource/roboto/files/roboto-latin-ext-400-normal.ttf')
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch font: ${res.statusText}`);
-        }
-        return res.blob();
-      })
+        // Fetch font that supports Czech diacritics and convert it to base64
+
+        fetch('https://cdn.jsdelivr.net/npm/@fontsource/roboto/files/roboto-latin-ext-400-normal.ttf')
+
+          .then(res => {
+
+            if (!res.ok) {
+
+              throw new Error(`Failed to fetch font: ${res.statusText}`);
+
+            }
+
+            return res.blob();
+
+          })
       .then(blob => {
         const reader = new FileReader();
         reader.onloadend = () => {
