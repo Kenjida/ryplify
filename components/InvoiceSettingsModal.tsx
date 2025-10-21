@@ -62,13 +62,14 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
       })
       .catch(err => console.error("Error loading logo:", err));
 
-    // Fetch font with a cache-busting query parameter
-            const fontUrl = `https://unpkg.com/@fontsource/roboto@5.0.13/files/roboto-latin-ext-400-normal.ttf?v=${new Date().getTime()}`;
-            fetch(fontUrl)
-              .then(res => {
-                if (!res.ok) throw new Error(`Failed to fetch font: ${res.statusText}`);
-                return res.blob();
-              })
+    // Fetch font from the local public directory
+    fetch('/roboto/Roboto-VariableFont_wdth,wght.ttf')
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch font: ${res.statusText}`);
+        }
+        return res.blob();
+      })
       .then(blob => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -79,7 +80,7 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
       })
       .catch(err => {
         console.error("Error loading font:", err);
-        alert("Nepodařilo se načíst font pro diakritiku. PDF nebude vygenerováno správně.");
+        alert("Nepodařilo se načíst lokální soubor s fontem. Zkontrolujte, zda je soubor 'roboto.ttf' ve složce 'public'.");
       });
 
   }, [project]);
