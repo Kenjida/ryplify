@@ -63,12 +63,12 @@ const InvoiceSettingsModal: React.FC<InvoiceSettingsModalProps> = ({ project, on
       .catch(err => console.error("Error loading logo:", err));
 
     // Fetch font with a cache-busting query parameter
-        const fontUrl = `https://unpkg.com/@fontsource/roboto@5.0.13/files/roboto-latin-ext-400-normal.ttf?v=${new Date().getTime()}`;
-        fetch(fontUrl)
-          .then(res => {
-            if (!res.ok) throw new Error(`Failed to fetch font: ${res.statusText}`);
-            return res.blob();
-          })
+            const fontUrl = `https://unpkg.com/@fontsource/roboto@5.0.13/files/roboto-latin-ext-400-normal.ttf?v=${new Date().getTime()}`;
+            fetch(fontUrl)
+              .then(res => {
+                if (!res.ok) throw new Error(`Failed to fetch font: ${res.statusText}`);
+                return res.blob();
+              })
       .then(blob => {
         const reader = new FileReader();
         reader.onloadend = () => {
