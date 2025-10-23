@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import type { Project } from './types';
+import InvoiceModal from './InvoiceModal'; // Import the modal
 
 interface ProjectItemProps {
   project: Project;
@@ -10,7 +11,6 @@ interface ProjectItemProps {
   onDeleteProject?: (id: string) => void;
   onToggleFree?: (id: string) => void;
   onEditProject?: (id: string) => void;
-  onOpenInvoiceSettings?: (project: Project) => void;
   isReadOnly?: boolean;
   liveNote?: string;
   handleNoteChange?: (id: string, note: string) => void;
@@ -25,8 +25,9 @@ const formatTime = (totalSeconds: number): string => {
     .join(":");
 };
 
-const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggleTimer, onToggleActive, onDeleteProject, onToggleFree, onEditProject, onOpenInvoiceSettings, isReadOnly, liveNote, handleNoteChange }) => {
+const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggleTimer, onToggleActive, onDeleteProject, onToggleFree, onEditProject, isReadOnly, liveNote, handleNoteChange }) => {
   const [displaySeconds, setDisplaySeconds] = useState(project.totalSeconds);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   useEffect(() => {
     if (project.startTime) {
@@ -44,101 +45,111 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
   const cost = (displaySeconds / 3600) * hourlyRate;
 
   return (
-    <div className={`bg-zinc-800 p-4 rounded-lg shadow-md transition-all duration-300 ${!project.isActive ? 'ring-2 ring-green-500' : isRunning ? 'ring-2 ring-red-500' : ''}`}>
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-xl font-bold text-gray-100 flex items-center">
-            {project.name}
-            {!project.isActive && <span className="text-green-500 ml-2 text-sm font-normal">(Dokončeno)</span>}
-            {project.isFree && !isReadOnly && <span className="text-xs font-medium ml-2 px-2 py-0.5 rounded-full bg-blue-500 text-white">Zdarma</span>}
-          </h3>
-          <p className="text-3xl font-mono my-2 text-white">{formatTime(displaySeconds)}</p>
-          <p className="text-lg text-red-400 font-semibold">
-            {project.isFree && !isReadOnly && <span className="text-sm text-gray-400">Potenciál: </span>}
-            {cost.toFixed(2)} Kč
-          </p>
-        </div>
-        {!isReadOnly && (
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex flex-wrap justify-end gap-2">
-              {project.isActive && (
-                <button
-                  onClick={() => onToggleTimer(project.id, isRunning)}
-                  className={`px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-24 ${isRunning ? 'bg-zinc-600 hover:bg-zinc-700' : 'bg-red-600 hover:bg-red-700'}`}>
-                  {isRunning ? 'Stop' : 'Start'}
-                </button>
-              )}
-              {!project.isActive && onOpenInvoiceSettings && (
-                <>
+    <>
+      <div className={`bg-zinc-800 p-4 rounded-lg shadow-md transition-all duration-300 ${!project.isActive ? 'ring-2 ring-green-500' : isRunning ? 'ring-2 ring-red-500' : ''}`}>
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="text-xl font-bold text-gray-100 flex items-center">
+              {project.name}
+              {!project.isActive && <span className="text-green-500 ml-2 text-sm font-normal">(Dokončeno)</span>}
+              {project.isFree && !isReadOnly && <span className="text-xs font-medium ml-2 px-2 py-0.5 rounded-full bg-blue-500 text-white">Zdarma</span>}
+            </h3>
+            <p className="text-3xl font-mono my-2 text-white">{formatTime(displaySeconds)}</p>
+            <p className="text-lg text-red-400 font-semibold">
+              {project.isFree && !isReadOnly && <span className="text-sm text-gray-400">Potenciál: </span>}
+              {cost.toFixed(2)} Kč
+            </p>
+          </div>
+          {!isReadOnly && (
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex flex-wrap justify-end gap-2">
+                {project.isActive && (
                   <button
-                    onClick={() => onOpenInvoiceSettings(project)}
-                    className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-rose-600 hover:bg-rose-700">
-                    Stáhnout PDF
+                    onClick={() => onToggleTimer(project.id, isRunning)}
+                    className={`px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-24 ${isRunning ? 'bg-zinc-600 hover:bg-zinc-700' : 'bg-red-600 hover:bg-red-700'}`}>
+                    {isRunning ? 'Stop' : 'Start'}
                   </button>
-                  {onDeleteProject && (
+                )}
+                {!project.isActive && (
+                  <>
                     <button
-                      onClick={() => {
-                        if (window.confirm('Opravdu si přejete smazat tento projekt?')) {
-                          onDeleteProject(project.id);
-                        }
-                      }}
-                      className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-gray-700 hover:bg-gray-600">
-                      Smazat
+                      onClick={() => setIsInvoiceModalOpen(true)}
+                      className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-rose-600 hover:bg-rose-700">
+                      Vytvořit Fakturu
                     </button>
-                  )}
-                </>
-              )}
-              {onEditProject && (
-                  <button
-                      onClick={() => onEditProject(project.id)}
-                      className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-24 bg-blue-600 hover:bg-blue-700">
-                      Upravit
-                  </button>
-              )}
-            </div>
-
-            <div className="flex flex-col md:flex-row items-end md:items-center mt-2 gap-4">
-              <div className="flex items-center">
-                <span className="text-sm text-gray-400 mr-2">{project.isActive ? 'Aktivní' : 'Neaktivní'}</span>
-                <label htmlFor={`toggle-active-${project.id}`} className="flex items-center cursor-pointer">
-                  <div className="relative">
-                    <input type="checkbox" id={`toggle-active-${project.id}`} className="sr-only" checked={project.isActive} onChange={() => onToggleActive(project.id)} />
-                    <div className="block bg-zinc-600 w-14 h-8 rounded-full"></div>
-                    <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${project.isActive ? 'transform translate-x-6 bg-red-500' : ''}`}></div>
-                  </div>
-                </label>
+                    {onDeleteProject && (
+                      <button
+                        onClick={() => {
+                          if (window.confirm('Opravdu si přejete smazat tento projekt?')) {
+                            onDeleteProject(project.id);
+                          }
+                        }}
+                        className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-gray-700 hover:bg-gray-600">
+                        Smazat
+                      </button>
+                    )}
+                  </>
+                )}
+                {onEditProject && (
+                    <button
+                        onClick={() => onEditProject(project.id)}
+                        className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-24 bg-blue-600 hover:bg-blue-700">
+                        Upravit
+                    </button>
+                )}
               </div>
-              {onToggleFree && (
-                  <div className="flex items-center">
-                      <span className="text-sm text-gray-400 mr-2">{project.isFree ? 'Zdarma' : 'Placený'}</span>
-                      <label htmlFor={`toggle-free-${project.id}`} className="flex items-center cursor-pointer">
-                          <div className="relative">
-                              <input type="checkbox" id={`toggle-free-${project.id}`} className="sr-only" checked={project.isFree} onChange={() => onToggleFree(project.id)} />
-                              <div className="block bg-zinc-600 w-14 h-8 rounded-full"></div>
-                              <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${project.isFree ? 'transform translate-x-6 bg-blue-500' : ''}`}></div>
-                          </div>
-                      </label>
-                  </div>
-              )}
+
+              <div className="flex flex-col md:flex-row items-end md:items-center mt-2 gap-4">
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-400 mr-2">{project.isActive ? 'Aktivní' : 'Neaktivní'}</span>
+                  <label htmlFor={`toggle-active-${project.id}`} className="flex items-center cursor-pointer">
+                    <div className="relative">
+                      <input type="checkbox" id={`toggle-active-${project.id}`} className="sr-only" checked={project.isActive} onChange={() => onToggleActive(project.id)} />
+                      <div className="block bg-zinc-600 w-14 h-8 rounded-full"></div>
+                      <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${project.isActive ? 'transform translate-x-6 bg-red-500' : ''}`}></div>
+                    </div>
+                  </label>
+                </div>
+                {onToggleFree && (
+                    <div className="flex items-center">
+                        <span className="text-sm text-gray-400 mr-2">{project.isFree ? 'Zdarma' : 'Placený'}</span>
+                        <label htmlFor={`toggle-free-${project.id}`} className="flex items-center cursor-pointer">
+                            <div className="relative">
+                                <input type="checkbox" id={`toggle-free-${project.id}`} className="sr-only" checked={project.isFree} onChange={() => onToggleFree(project.id)} />
+                                <div className="block bg-zinc-600 w-14 h-8 rounded-full"></div>
+                                <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${project.isFree ? 'transform translate-x-6 bg-blue-500' : ''}`}></div>
+                            </div>
+                        </label>
+                    </div>
+                )}
+              </div>
             </div>
+          )}
+        </div>
+        {isRunning && (
+          <div className="mt-4">
+              <p className='text-sm text-gray-400 mb-1'>Aktuální stav: <span className='text-gray-200'>{liveNote || "-"}</span></p>
+              {!isReadOnly && handleNoteChange && (
+                  <input 
+                      type="text" 
+                      value={liveNote || ''} 
+                      onChange={(e) => handleNoteChange(project.id, e.target.value)}
+                      placeholder="Na čem právě pracujete?"
+                      className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-red-500 focus:border-red-500 mt-2"
+                  />
+              )}
           </div>
         )}
       </div>
-      {isRunning && (
-        <div className="mt-4">
-            <p className='text-sm text-gray-400 mb-1'>Aktuální stav: <span className='text-gray-200'>{liveNote || "-"}</span></p>
-            {!isReadOnly && handleNoteChange && (
-                <input 
-                    type="text" 
-                    value={liveNote || ''} 
-                    onChange={(e) => handleNoteChange(project.id, e.target.value)}
-                    placeholder="Na čem právě pracujete?"
-                    className="w-full bg-zinc-700 border border-zinc-600 rounded-md px-3 py-2 text-white focus:ring-red-500 focus:border-red-500 mt-2"
-                />
-            )}
-        </div>
+      {isInvoiceModalOpen && (
+        <InvoiceModal
+          project={project}
+          hourlyRate={hourlyRate}
+          timeCost={cost}
+          onClose={() => setIsInvoiceModalOpen(false)}
+        />
       )}
-    </div>
+    </>
   );
 };
 
