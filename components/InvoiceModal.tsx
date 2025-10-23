@@ -3,7 +3,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
 import type { Project } from './types';
-import { robotoFontData } from '../utils/roboto-font';
+
+// The problematic font utility is no longer imported.
 
 // --- Interfaces ---
 interface FixedItem {
@@ -84,10 +85,25 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
     try {
       const doc = new jsPDF();
 
-      // 1. Add custom font
-      doc.addFileToVFS('Roboto-Regular.ttf', robotoFontData);
-      doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-      doc.setFont('Roboto');
+      // 1. Fetch the font file and convert it to Base64
+      try {
+        const fontResponse = await fetch('/roboto/static/Roboto-Regular.ttf');
+        if (!fontResponse.ok) throw new Error('Font file not found on server.');
+        const fontBuffer = await fontResponse.arrayBuffer();
+        
+        // Convert ArrayBuffer to Base64 string
+        const fontBase64 = btoa(
+            new Uint8Array(fontBuffer)
+                .reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+
+        doc.addFileToVFS('Roboto-Regular.ttf', fontBase64);
+        doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+        doc.setFont('Roboto');
+      } catch (fontError) {
+        console.error("Error loading custom font, proceeding with default font:", fontError);
+        alert("Chyba: Nepodařilo se načíst font pro diakritiku. Faktura bude vygenerována bez něj.");
+      }
 
       // 2. Add Logo
       try {
@@ -109,7 +125,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
         console.error("Could not load or add logo:", error);
       }
       
-      let currentY = 50; // Initial Y position after logo space
+      let currentY = 50;
 
       // 3. Header
       doc.setFontSize(26);
@@ -181,7 +197,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       doc.text('Děkuji za Vaši platbu.', 14, pageHeight - 15);
       doc.text('Nejsem plátce DPH.', 14, pageHeight - 10);
 
-      doc.save(`faktura-${project.name.replace(/\s/g, '_')}.pdf`);
+      doc.save(`faktura-${project.name.replace(/
+/g, '_')}.pdf`);
       onClose();
     } catch (error) {
       console.error("Chyba při generování PDF:", error);
