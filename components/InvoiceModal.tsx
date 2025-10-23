@@ -45,14 +45,14 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
   const [bankAccount, setBankAccount] = useState('193788710/0600');
   
   const [provider, setProvider] = useState<EntityDetails>(() => {
-    const saved = localStorage.getItem('providerDetails');
+    const saved = localStorage.getItem('providerDetails_v2');
     return saved ? JSON.parse(saved) : { name: 'Lukáš Rypl', address: 'Karlíkova 402', city: 'Rokycany', zip: '337 01', ico: 'Vaše IČO' };
   });
   const [customer, setCustomer] = useState<EntityDetails>({ name: '', address: '', city: '', zip: '', ico: '' });
 
   // --- Effects ---
   useEffect(() => {
-    localStorage.setItem('providerDetails', JSON.stringify(provider));
+    localStorage.setItem('providerDetails_v2', JSON.stringify(provider));
   }, [provider]);
 
   // --- Handlers ---
@@ -107,7 +107,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
 
       // 2. Add Logo
       try {
-        const response = await fetch('/vibecoding_ryplify.png');
+        const response = await fetch('/logo.png');
         const blob = await response.blob();
         const reader = new FileReader();
         const logoDataUrl = await new Promise<string>((resolve, reject) => {
