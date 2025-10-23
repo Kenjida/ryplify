@@ -40,7 +40,9 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
   const [fixedItems, setFixedItems] = useState<FixedItem[]>([]);
   const [itemDescription, setItemDescription] = useState('');
   const [itemPrice, setItemPrice] = useState('');
-  const [bankAccount, setBankAccount] = useState('193788710/0600');
+  
+  // State now expects the full IBAN
+  const [iban, setIban] = useState(() => localStorage.getItem('bankAccountIban') || '');
   
   const [provider, setProvider] = useState<EntityDetails>(() => {
     const saved = localStorage.getItem('providerDetails_v2');
@@ -52,6 +54,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
   useEffect(() => {
     localStorage.setItem('providerDetails_v2', JSON.stringify(provider));
   }, [provider]);
+
+  useEffect(() => {
+    if (iban) {
+      localStorage.setItem('bankAccountIban', iban);
+    }
+  }, [iban]);
 
   // --- Handlers ---
   const handleAddItem = () => {
@@ -80,9 +88,9 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
     const fixedItemsTotal = fixedItems.reduce((sum, item) => sum + item.price, 0);
     const grandTotal = timeCost + fixedItemsTotal;
 
-    // --- Validation ---
-    if (!bankAccount || !bankAccount.match(/^\d{1,10}\/\d{4}$/)) {
-      alert('Prosím, zadejte platné číslo účtu ve formátu ČÍSLO/KÓD_BANKY (např. 123456789/0100).');
+    // --- IBAN Validation ---
+    if (!iban || !iban.match(/^CZ\d{22}$/)) {
+      alert('Prosím, zadejte platné číslo účtu ve formátu IBAN (např. CZ5408000000000123456789). Najdete ho ve svém internetovém bankovnictví.');
       return;
     }
 
@@ -123,17 +131,15 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       }
       
       let currentY = 50;
+      const invoiceNumber = `${new Date().getFullYear()}${String(project.id).slice(-4)}`;
 
-      // 3. Header
+      // 3. Header & Details
       doc.setFontSize(26);
       doc.text('Faktura', 14, currentY);
-      currentY += 8;
       doc.setFontSize(12);
-      const invoiceNumber = `${new Date().getFullYear()}${String(project.id).slice(-4)}`;
-      doc.text(`Číslo: ${invoiceNumber}`, 14, currentY);
-      currentY += 10;
+      doc.text(`Číslo: ${invoiceNumber}`, 14, currentY + 8);
+      currentY += 20;
 
-      // 4. Provider & Customer Details
       const today = new Date();
       const dueDate = new Date(today);
       dueDate.setDate(today.getDate() + 14);
@@ -158,7 +164,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       });
       currentY = (doc as any).lastAutoTable.finalY + 15;
 
-      // 5. Items Table
+      // 4. Items Table
       doc.setFontSize(14);
       doc.text("Položky faktury", 14, currentY);
       currentY += 5;
@@ -178,20 +184,19 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       });
       currentY = (doc as any).lastAutoTable.finalY;
 
-      // 6. Payment Information & QR Code
+      // 5. Payment Information & QR Code
       doc.setFontSize(12);
       doc.text('Platební údaje:', 14, currentY + 15);
       doc.setFontSize(10);
-      doc.text(`Číslo účtu: ${bankAccount}`, 14, currentY + 22);
+      doc.text(`Číslo účtu (IBAN): ${iban}`, 14, currentY + 22);
       
-      // --- Correct QR Code Generation using National Standard Extension ---
-      const [accountNum, bankCode] = bankAccount.split('/');
-      const spdString = `SPD*1.0*ACC:${bankAccount.replace('/', '+')}*AM:${grandTotal.toFixed(2)}*CC:CZK*X-VS:${invoiceNumber}*MSG:Faktura-${invoiceNumber}`;
+      // --- Final, Correct QR Code Generation ---
+      const spdString = `SPD*1.0*ACC:${iban}*AM:${grandTotal.toFixed(2)}*CC:CZK*X-VS:${invoiceNumber}*MSG:Faktura-${invoiceNumber}`;
       
       const qrCodeDataUrl = await QRCode.toDataURL(spdString, { errorCorrectionLevel: 'M', width: 200 });
       doc.addImage(qrCodeDataUrl, 'PNG', 150, currentY + 10, 45, 45);
 
-      // 7. Footer
+      // 6. Footer
       const pageHeight = doc.internal.pageSize.height;
       doc.setFontSize(9);
       doc.setTextColor(150);
@@ -263,8 +268,14 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
         </div>
         
         <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-300 mb-1">Číslo účtu pro platbu</label>
-            <input type="text" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} className="w-full bg-zinc-700 p-2 rounded" />
+            <label className="block text-sm font-medium text-gray-300 mb-1">Číslo účtu pro platbu (IBAN)</label>
+            <input 
+              type="text" 
+              value={iban} 
+              onChange={(e) => setIban(e.target.value.toUpperCase().replace(/\s/g, ''))} 
+              placeholder="CZ..."
+              className="w-full bg-zinc-700 p-2 rounded" 
+            />
         </div>
 
         <div className="flex justify-end mt-6 space-x-3">
