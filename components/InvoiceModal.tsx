@@ -184,13 +184,9 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       doc.setFontSize(10);
       doc.text(`Číslo účtu: ${bankAccount}`, 14, currentY + 22);
       
-      // --- Correct QR Code Generation ---
+      // --- Correct QR Code Generation using National Standard Extension ---
       const [accountNum, bankCode] = bankAccount.split('/');
-      // Pad account number to 16 digits (6 for prefix, 10 for number)
-      const paddedAccount = `000000${accountNum}`.slice(-16); 
-      const iban = `CZ00${bankCode}${paddedAccount}`;
-
-      const spdString = `SPD*1.0*ACC:${iban}*AM:${grandTotal.toFixed(2)}*CC:CZK*X-VS:${invoiceNumber}*MSG:Faktura-${invoiceNumber}`;
+      const spdString = `SPD*1.0*ACC:${bankAccount.replace('/', '+')}*AM:${grandTotal.toFixed(2)}*CC:CZK*X-VS:${invoiceNumber}*MSG:Faktura-${invoiceNumber}`;
       
       const qrCodeDataUrl = await QRCode.toDataURL(spdString, { errorCorrectionLevel: 'M', width: 200 });
       doc.addImage(qrCodeDataUrl, 'PNG', 150, currentY + 10, 45, 45);
