@@ -10,12 +10,77 @@ interface FixedItem {
   description: string;
   price: number;
 }
-// ... (rest of the file is unchanged)
-// ...
+
+interface EntityDetails {
+  name: string;
+  address: string;
+  city: string;
+  zip: string;
+  ico: string;
+}
+
+interface InvoiceModalProps {
+  project: Project;
+  hourlyRate: number;
+  timeCost: number;
+  onClose: () => void;
+}
+
+// --- Helper Functions ---
+const formatTime = (totalSeconds: number): string => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return `${hours}h ${minutes}m`;
+};
+
+const formatDate = (date: Date) => date.toLocaleDateString('cs-CZ');
+
+// --- Component ---
+const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCost, onClose }) => {
+  // --- State ---
+  const [fixedItems, setFixedItems] = useState<FixedItem[]>([]);
+  const [itemDescription, setItemDescription] = useState('');
+  const [itemPrice, setItemPrice] = useState('');
+  const [bankAccount, setBankAccount] = useState('193788710/0600');
+  
+  const [provider, setProvider] = useState<EntityDetails>(() => {
+    const saved = localStorage.getItem('providerDetails');
+    return saved ? JSON.parse(saved) : { name: 'Lukáš Dvořák', address: 'Vaše Adresa', city: 'Vaše Město', zip: 'PSČ', ico: 'Vaše IČO' };
+  });
+  const [customer, setCustomer] = useState<EntityDetails>({ name: '', address: '', city: '', zip: '', ico: '' });
+
+  // --- Effects ---
+  useEffect(() => {
+    localStorage.setItem('providerDetails', JSON.stringify(provider));
+  }, [provider]);
+
+  // --- Handlers ---
+  const handleAddItem = () => {
+    const price = parseFloat(itemPrice);
+    if (itemDescription && !isNaN(price) && price > 0) {
+      setFixedItems([...fixedItems, { description: itemDescription, price }]);
+      setItemDescription('');
+      setItemPrice('');
+    }
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setFixedItems(fixedItems.filter((_, i) => i !== index));
+  };
+
+  const handleProviderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProvider({ ...provider, [e.target.name]: e.target.value });
+  };
+
+  const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomer({ ...customer, [e.target.name]: e.target.value });
+  };
 
   // --- PDF Generation ---
   const generateInvoice = async () => {
-    // ...
+    const fixedItemsTotal = fixedItems.reduce((sum, item) => sum + item.price, 0);
+    const grandTotal = timeCost + fixedItemsTotal;
+
     try {
       const doc = new jsPDF();
 
@@ -23,9 +88,6 @@ interface FixedItem {
       doc.addFileToVFS('Roboto-Regular.ttf', robotoFontData);
       doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
       doc.setFont('Roboto');
-
-      // ... (rest of the function is unchanged)
-// ...
 
       // 2. Add Logo
       try {
