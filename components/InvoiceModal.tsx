@@ -177,10 +177,17 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
         ],
         foot: [['Celkem k úhradě', '', '', `${grandTotal.toFixed(2)} Kč`]],
         theme: 'striped',
-        headStyles: { fillColor: [239, 68, 68], font: 'Roboto' },
+        headStyles: { fillColor: [239, 68, 68], font: 'Roboto', fontStyle: 'normal' },
         bodyStyles: { font: 'Roboto' },
         footStyles: { fillColor: [41, 41, 46], textColor: [255, 255, 255], fontStyle: 'normal', font: 'Roboto' },
-        didParseCell: (data) => { data.cell.styles.font = 'Roboto'; }
+        columnStyles: { 0: { cellWidth: 'auto' } },
+        didParseCell: (data) => { 
+          data.cell.styles.font = 'Roboto';
+          // Allow long text in the first column to wrap
+          if (data.column.index === 0) {
+            data.cell.styles.cellWidth = 'wrap';
+          }
+        }
       });
       currentY = (doc as any).lastAutoTable.finalY;
 
