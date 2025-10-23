@@ -4,8 +4,6 @@ import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
 import type { Project } from './types';
 
-// The problematic font utility is no longer imported.
-
 // --- Interfaces ---
 interface FixedItem {
   description: string;
@@ -83,32 +81,26 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
     const grandTotal = timeCost + fixedItemsTotal;
 
     // --- Validation ---
-    if (!bankAccount || !bankAccount.includes('/')) {
-      alert('Prosím, zadejte platné číslo účtu ve formátu XXXXX/YYYY, aby bylo možné vygenerovat QR kód.');
-      return; // Stop execution if account number is invalid
+    if (!bankAccount || !bankAccount.match(/^\d{1,10}\/\d{4}$/)) {
+      alert('Prosím, zadejte platné číslo účtu ve formátu ČÍSLO/KÓD_BANKY (např. 123456789/0100).');
+      return;
     }
 
     try {
       const doc = new jsPDF();
 
-      // 1. Fetch the font file and convert it to Base64
+      // 1. Fetch and prepare font
       try {
         const fontResponse = await fetch('/roboto/static/Roboto-Regular.ttf');
-        if (!fontResponse.ok) throw new Error('Font file not found on server.');
+        if (!fontResponse.ok) throw new Error('Font file not found.');
         const fontBuffer = await fontResponse.arrayBuffer();
-        
-        // Convert ArrayBuffer to Base64 string
-        const fontBase64 = btoa(
-            new Uint8Array(fontBuffer)
-                .reduce((data, byte) => data + String.fromCharCode(byte), '')
-        );
-
+        const fontBase64 = btoa(new Uint8Array(fontBuffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
         doc.addFileToVFS('Roboto-Regular.ttf', fontBase64);
         doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
         doc.setFont('Roboto');
       } catch (fontError) {
-        console.error("Error loading custom font, proceeding with default font:", fontError);
-        alert("Chyba: Nepodařilo se načíst font pro diakritiku. Faktura bude vygenerována bez něj.");
+        console.error("Error loading custom font:", fontError);
+        alert("Chyba: Nepodařilo se načíst font pro diakritiku.");
       }
 
       // 2. Add Logo
@@ -121,7 +113,6 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
             reader.onerror = reject;
             reader.readAsDataURL(blob);
         });
-        
         const logoWidth = 50;
         const logoHeight = 12.5;
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -138,7 +129,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       doc.text('Faktura', 14, currentY);
       currentY += 8;
       doc.setFontSize(12);
-      doc.text(`Číslo: ${new Date().getFullYear()}${String(project.id).slice(-4)}`, 14, currentY);
+      const invoiceNumber = `${new Date().getFullYear()}${String(project.id).slice(-4)}`;
+      doc.text(`Číslo: ${invoiceNumber}`, 14, currentY);
       currentY += 10;
 
       // 4. Provider & Customer Details
@@ -192,12 +184,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       doc.setFontSize(10);
       doc.text(`Číslo účtu: ${bankAccount}`, 14, currentY + 22);
       
-      // --- QR Code Generation ---
-      // Convert local account format to a basic IBAN structure for the QR payment standard.
-      // NOTE: This does not calculate a real IBAN checksum, but it's a common format for QR payments in CZ.
-      const iban = `CZ00${bankAccount.replace('/', '')}`; 
-      const invoiceNumber = `${new Date().getFullYear()}${String(project.id).slice(-4)}`;
-      
+      // --- Correct QR Code Generation ---
+      const [accountNum, bankCode] = bankAccount.split('/');
+      // Pad account number to 16 digits (6 for prefix, 10 for number)
+      const paddedAccount = `000000${accountNum}`.slice(-16); 
+      const iban = `CZ00${bankCode}${paddedAccount}`;
+
       const spdString = `SPD*1.0*ACC:${iban}*AM:${grandTotal.toFixed(2)}*CC:CZK*X-VS:${invoiceNumber}*MSG:Faktura-${invoiceNumber}`;
       
       const qrCodeDataUrl = await QRCode.toDataURL(spdString, { errorCorrectionLevel: 'M', width: 200 });
@@ -208,11 +200,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       doc.setFontSize(9);
       doc.setTextColor(150);
       doc.text('Děkuji za Vaši platbu.', 14, pageHeight - 15);
-            doc.text('Nejsem plátce DPH.', 14, pageHeight - 10);
-      
-            doc.save(`faktura-${project.name.replace(/\s/g, '_')}.pdf`);
-            onClose();
-          } catch (error) {      console.error("Chyba při generování PDF:", error);
+      doc.text('Nejsem plátce DPH.', 14, pageHeight - 10);
+
+      doc.save(`faktura-${project.name.replace(/\s/g, '_')}.pdf`);
+      onClose();
+    } catch (error) {
+      console.error("Chyba při generování PDF:", error);
       alert("Nepodařilo se vygenerovat PDF. Zkontrolujte konzoli pro více detailů.");
     }
   };
