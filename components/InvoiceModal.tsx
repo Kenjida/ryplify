@@ -195,13 +195,11 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       doc.setFontSize(9);
       doc.setTextColor(150);
       doc.text('Děkuji za Vaši platbu.', 14, pageHeight - 15);
-      doc.text('Nejsem plátce DPH.', 14, pageHeight - 10);
-
-      doc.save(`faktura-${project.name.replace(/
-/g, '_')}.pdf`);
-      onClose();
-    } catch (error) {
-      console.error("Chyba při generování PDF:", error);
+            doc.text('Nejsem plátce DPH.', 14, pageHeight - 10);
+      
+            doc.save(`faktura-${project.name.replace(/\s/g, '_')}.pdf`);
+            onClose();
+          } catch (error) {      console.error("Chyba při generování PDF:", error);
       alert("Nepodařilo se vygenerovat PDF. Zkontrolujte konzoli pro více detailů.");
     }
   };
