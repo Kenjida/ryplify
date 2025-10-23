@@ -82,6 +82,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
     const fixedItemsTotal = fixedItems.reduce((sum, item) => sum + item.price, 0);
     const grandTotal = timeCost + fixedItemsTotal;
 
+    // --- Validation ---
+    if (!bankAccount || !bankAccount.includes('/')) {
+      alert('Prosím, zadejte platné číslo účtu ve formátu XXXXX/YYYY, aby bylo možné vygenerovat QR kód.');
+      return; // Stop execution if account number is invalid
+    }
+
     try {
       const doc = new jsPDF();
 
