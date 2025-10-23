@@ -45,7 +45,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
   
   const [provider, setProvider] = useState<EntityDetails>(() => {
     const saved = localStorage.getItem('providerDetails');
-    return saved ? JSON.parse(saved) : { name: 'Lukáš Dvořák', address: 'Vaše Adresa', city: 'Vaše Město', zip: 'PSČ', ico: 'Vaše IČO' };
+    return saved ? JSON.parse(saved) : { name: 'Lukáš Rypl', address: 'Karlíkova 402', city: 'Rokycany', zip: '337 01', ico: 'Vaše IČO' };
   });
   const [customer, setCustomer] = useState<EntityDetails>({ name: '', address: '', city: '', zip: '', ico: '' });
 
@@ -85,7 +85,9 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       const doc = new jsPDF();
 
       // 1. Add custom font
-      doc.addFileToVFS('Roboto-Regular.ttf', robotoFontData);
+      // Strip potential data URI scheme prefix from the base64 string
+      const base64Font = robotoFontData.split(',')[1] || robotoFontData;
+      doc.addFileToVFS('Roboto-Regular.ttf', base64Font);
       doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
       doc.setFont('Roboto');
 
@@ -127,7 +129,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       autoTable(doc, {
         startY: currentY,
         body: [
-          [{ content: 'Dodavatel:', styles: { fontStyle: 'bold' } }, { content: 'Odběratel:', styles: { fontStyle: 'bold' } }],
+          [{ content: 'Dodavatel:', styles: { fontStyle: 'normal' } }, { content: 'Odběratel:', styles: { fontStyle: 'normal' } }],
           [`${provider.name}\n${provider.address}\n${provider.zip} ${provider.city}\nIČO: ${provider.ico}`, `${customer.name}\n${customer.address}\n${customer.zip} ${customer.city}\nIČO: ${customer.ico}`],
         ],
         theme: 'plain',
@@ -159,7 +161,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
         theme: 'striped',
         headStyles: { fillColor: [239, 68, 68], font: 'Roboto' },
         bodyStyles: { font: 'Roboto' },
-        footStyles: { fillColor: [41, 41, 46], textColor: [255, 255, 255], fontStyle: 'bold', font: 'Roboto' },
+        footStyles: { fillColor: [41, 41, 46], textColor: [255, 255, 255], fontStyle: 'normal', font: 'Roboto' },
         didParseCell: (data) => { data.cell.styles.font = 'Roboto'; }
       });
       currentY = (doc as any).lastAutoTable.finalY;

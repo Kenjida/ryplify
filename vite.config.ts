@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => {
             background_color: '#0a0f1f',
             display: 'standalone',
             scope: '/admin/',
-            start_url: '/admin',
+            start_url: '/admin/',
             icons: [
               {
                 src: 'icon-192x192.png',

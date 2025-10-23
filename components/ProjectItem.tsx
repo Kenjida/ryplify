@@ -47,8 +47,9 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
   return (
     <>
       <div className={`bg-zinc-800 p-4 rounded-lg shadow-md transition-all duration-300 ${!project.isActive ? 'ring-2 ring-green-500' : isRunning ? 'ring-2 ring-red-500' : ''}`}>
-        <div className="flex justify-between items-start">
-          <div>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+          {/* --- Left Side: Details --- */}
+          <div className="flex-grow">
             <h3 className="text-xl font-bold text-gray-100 flex items-center">
               {project.name}
               {!project.isActive && <span className="text-green-500 ml-2 text-sm font-normal">(Dokončeno)</span>}
@@ -60,9 +61,12 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
               {cost.toFixed(2)} Kč
             </p>
           </div>
+
+          {/* --- Right Side: Controls --- */}
           {!isReadOnly && (
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex flex-wrap justify-end gap-2">
+            <div className="flex flex-col items-stretch md:items-end gap-3 w-full md:w-auto">
+              {/* --- Action Buttons --- */}
+              <div className="flex flex-wrap justify-center md:justify-end gap-2">
                 {project.isActive && (
                   <button
                     onClick={() => onToggleTimer(project.id, isRunning)}
@@ -74,7 +78,7 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
                   <>
                     <button
                       onClick={() => setIsInvoiceModalOpen(true)}
-                      className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-rose-600 hover:bg-rose-700">
+                      className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 grow sm:grow-0 sm:w-32 bg-rose-600 hover:bg-rose-700">
                       Vytvořit Fakturu
                     </button>
                     {onDeleteProject && (
@@ -84,7 +88,7 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
                             onDeleteProject(project.id);
                           }
                         }}
-                        className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 w-32 bg-gray-700 hover:bg-gray-600">
+                        className="px-4 py-2 text-sm font-semibold text-white rounded-md transition-colors duration-300 grow sm:grow-0 sm:w-32 bg-gray-700 hover:bg-gray-600">
                         Smazat
                       </button>
                     )}
@@ -99,8 +103,9 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
                 )}
               </div>
 
-              <div className="flex flex-col md:flex-row items-end md:items-center mt-2 gap-4">
-                <div className="flex items-center">
+              {/* --- Toggles --- */}
+              <div className="flex flex-col sm:flex-row justify-end items-center mt-2 gap-4">
+                <div className="flex items-center justify-between w-full sm:w-auto">
                   <span className="text-sm text-gray-400 mr-2">{project.isActive ? 'Aktivní' : 'Neaktivní'}</span>
                   <label htmlFor={`toggle-active-${project.id}`} className="flex items-center cursor-pointer">
                     <div className="relative">
@@ -111,7 +116,7 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project, hourlyRate, onToggle
                   </label>
                 </div>
                 {onToggleFree && (
-                    <div className="flex items-center">
+                    <div className="flex items-center justify-between w-full sm:w-auto">
                         <span className="text-sm text-gray-400 mr-2">{project.isFree ? 'Zdarma' : 'Placený'}</span>
                         <label htmlFor={`toggle-free-${project.id}`} className="flex items-center cursor-pointer">
                             <div className="relative">
