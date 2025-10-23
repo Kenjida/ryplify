@@ -85,9 +85,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       const doc = new jsPDF();
 
       // 1. Add custom font
-      // Strip potential data URI scheme prefix from the base64 string
-      const base64Font = robotoFontData.split(',')[1] || robotoFontData;
-      doc.addFileToVFS('Roboto-Regular.ttf', base64Font);
+      doc.addFileToVFS('Roboto-Regular.ttf', robotoFontData);
       doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
       doc.setFont('Roboto');
 

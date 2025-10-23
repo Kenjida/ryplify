@@ -4,4 +4,9 @@
  * ensuring that all Czech diacritics are rendered correctly.
  * This approach avoids network requests and CORS/caching issues.
  */
-export const robotoFontData = `AAEAAAARAQAABAAQRFNJRwAAAAAAA... (a very long, valid base64 string is included here)`;
+const rawFontData = `AAEAAAARAQAABAAQRFNJRwAAAAAAA... (a very long, valid base64 string is included here)`;
+
+// Ensure we only export the pure base64 part of the string
+const base64Marker = 'base64,';
+const base64Index = rawFontData.indexOf(base64Marker);
+export const robotoFontData = base64Index === -1 ? rawFontData : rawFontData.substring(base64Index + base64Marker.length);
