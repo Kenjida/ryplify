@@ -166,7 +166,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       currentY += 5;
       autoTable(doc, {
         startY: currentY,
-        head: [['Popis', 'Množství', 'Sazba', 'Cena (Kč)']],
+        head: [['Popis', 'Množství', 'Sazba', 'Cena Kč']],
         body: [
           [`Práce na projektu: ${project.name}`, formatTime(project.totalSeconds), `${hourlyRate} Kč/hod`, `${timeCost.toFixed(2)}`],
           ...fixedItems.map(item => [item.description, '1', `${item.price.toFixed(2)}`, `${item.price.toFixed(2)}`]),
