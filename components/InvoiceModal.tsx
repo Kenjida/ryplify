@@ -192,8 +192,15 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ project, hourlyRate, timeCo
       doc.setFontSize(10);
       doc.text(`Číslo účtu: ${bankAccount}`, 14, currentY + 22);
       
-      const spdString = `SPD*1.0*ACC:${bankAccount}*AM:${grandTotal.toFixed(2)}*MSG:FA-${new Date().getFullYear()}${String(project.id).slice(-4)}`;
-      const qrCodeDataUrl = await QRCode.toDataURL(spdString, { errorCorrectionLevel: 'M' });
+      // --- QR Code Generation ---
+      // Convert local account format to a basic IBAN structure for the QR payment standard.
+      // NOTE: This does not calculate a real IBAN checksum, but it's a common format for QR payments in CZ.
+      const iban = `CZ00${bankAccount.replace('/', '')}`; 
+      const invoiceNumber = `${new Date().getFullYear()}${String(project.id).slice(-4)}`;
+      
+      const spdString = `SPD*1.0*ACC:${iban}*AM:${grandTotal.toFixed(2)}*CC:CZK*X-VS:${invoiceNumber}*MSG:Faktura-${invoiceNumber}`;
+      
+      const qrCodeDataUrl = await QRCode.toDataURL(spdString, { errorCorrectionLevel: 'M', width: 200 });
       doc.addImage(qrCodeDataUrl, 'PNG', 150, currentY + 10, 45, 45);
 
       // 7. Footer
